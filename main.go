@@ -4,24 +4,32 @@ package main
 import (
 	"embed"
 	"fmt"
+	"image"
 	"image/png"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 const (
 	winWidth  = 600
 	winHeight = 480
+
+	defaultFrame = 2
+	frameCount   = 12
+	frameWidth   = 48
+	frameHeight  = 48
 )
 
 var (
 	//go:embed imgs
 	FileSystem embed.FS
 
-	levelBG     *ebiten.Image
-	charaSprite *ebiten.Image
+	levelBG *ebiten.Image
+	//	charaSprite *ebiten.Image
+	spriteSheet *ebiten.Image
 
 	levelWidth  int
 	levelHeight int
@@ -29,6 +37,10 @@ var (
 	levelView *Viewer
 
 	mona *Character
+)
+
+var (
+	currentFrame int
 )
 
 func init() {
@@ -51,21 +63,39 @@ func init() {
 	levelHeight = 600
 
 	levelView = NewViewer()
+	/*
+		rawFile, err = FileSystem.Open("imgs/mona--2023-01-03.png")
+		if err != nil {
+			log.Fatalf("Error opening file imgs/character-sprite--test.png: %v\n", err)
+		}
+		defer rawFile.Close()
 
-	rawFile, err = FileSystem.Open("imgs/character-sprite--test.png")
+		img, err = png.Decode(rawFile)
+		if err != nil {
+			log.Fatalf("Error decoding file imgs/character-sprite--test.png: %v\n", err)
+		}
+
+		charaSprite = ebiten.NewImageFromImage(img)
+
+		mona = NewCharacter("Mona", charaSprite, 100)
+	*/
+
+	rawFile, err = FileSystem.Open("imgs/walk-test--2023-01-03.png")
 	if err != nil {
-		log.Fatalf("Error opening file imgs/character-sprite--test.png: %v\n", err)
+		log.Fatalf("Error opening file imgs/walk-test--2023-01-03.png: %v\n", err)
 	}
-	defer rawFile.Close()
 
 	img, err = png.Decode(rawFile)
 	if err != nil {
-		log.Fatalf("Error decoding file imgs/character-sprite--test.png: %v\n", err)
+		log.Fatalf("Error decoding file imgs/walk-test.png: %v\n", err)
 	}
 
-	charaSprite = ebiten.NewImageFromImage(img)
+	spriteSheet = ebiten.NewImageFromImage(img)
 
-	mona = NewCharacter("Mona", charaSprite, 100)
+	currentFrame = defaultFrame
+
+	mona = NewCharacter("Mona", spriteSheet, 100)
+
 }
 
 // main sets up game and runs it, or returns error
@@ -87,6 +117,7 @@ func main() {
 type Game struct {
 	background *ebiten.Image
 	view       *Viewer
+	count      int
 }
 
 // Viewer is the part of the total level that is visible, as indicated by the X,Y of the upper left corner
@@ -113,6 +144,7 @@ func NewGame() *Game {
 	game := &Game{
 		background: levelBG,
 		view:       levelView,
+		count:      0,
 	}
 	return game
 }
@@ -144,8 +176,10 @@ func NewCharacter(name string, sprite *ebiten.Image, hp int) *Character {
 }
 
 func (g *Game) Update() error {
+	g.count++
 	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 		mona.facing = "right"
+		currentFrame = (g.count / 5) % frameCount
 		switch {
 		case g.view.xCoord == 0 && mona.xCoord < 290:
 			mona.xCoord += 5
@@ -166,6 +200,9 @@ func (g *Game) Update() error {
 			mona.xCoord -= 5
 		}
 	}
+	if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
+		currentFrame = defaultFrame
+	}
 	return nil
 }
 
@@ -178,7 +215,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//	if mona.facing == "left" {
 	//		mOp.GeoM.Scale(-1.0, 1.0)
 	//	}
-	screen.DrawImage(mona.sprite, mOp)
+	cx, cy := currentFrame*frameWidth, 0
+	screen.DrawImage(mona.sprite.SubImage(image.Rect(cx, cy, cx+frameWidth, cy+frameHeight)).(*ebiten.Image), mOp)
 
 	msg := ""
 	msg += fmt.Sprintf("Mona xCoord: %d", mona.xCoord)
