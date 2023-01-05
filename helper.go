@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"image/png"
 	"log"
 
@@ -10,7 +9,7 @@ import (
 )
 
 func loadImage(fs embed.FS, path string) *ebiten.Image {
-	fmt.Println("loadImage logic goes here")
+	log.Printf("Loading %s", path)
 	rawFile, err := fs.Open(path)
 	if err != nil {
 		log.Fatalf("Error opening file %s: %v\n", path, err)

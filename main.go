@@ -16,7 +16,8 @@ const (
 	winWidth  = 600
 	winHeight = 480
 
-	ground = 380
+	ground  = 380
+	gravity = 20
 
 	defaultFrame = 2
 	frameCount   = 12
@@ -59,6 +60,20 @@ var (
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		},
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		},
 	}
 )
@@ -123,6 +138,7 @@ type Character struct {
 	facing     int
 	xCoord     int
 	yCoord     int
+	yVelo      int
 	active     bool
 	hp_current int
 	hp_total   int
@@ -167,6 +183,7 @@ func NewCharacter(name string, sprite *ebiten.Image, hp int) *Character {
 		facing:     0,
 		xCoord:     20,
 		yCoord:     ground,
+		yVelo:      gravity,
 		active:     false,
 		hp_current: hp,
 		hp_total:   hp,
@@ -212,15 +229,58 @@ func (g *Game) Update() error {
 		case g.view.xCoord == 0 && mona.xCoord > 40:
 			mona.xCoord -= 5
 		}
+		//		log.Printf("new x,y: %v, %v", mona.xCoord, mona.yCoord)
+		//		largeGridX := mona.
+		//		largeGridY :=
+		//		log.Printf("Larger coordinates: %v, %v",
 	}
 	if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
 		currentFrame = defaultFrame
 	}
-	if inpututil.IsKeyJustReleased(ebiten.KeySpace) {
-		dur := inpututil.KeyPressDuration(ebiten.KeySpace)
-		log.Printf("Duration of space key-press: %v", dur)
+	//	if inpututil.IsKeyJustReleased(ebiten.KeySpace) {
+	//		dur := inpututil.KeyPressDuration(ebiten.KeySpace)
+	//		log.Printf("Duration of space key-press: %v", dur)
+	//	}
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
+		mona.yVelo = -19
+		//		log.Printf("JUMP! velo = %v\nyCoord = %v, yVelo = %v", mona.yVelo, mona.yCoord, mona.yVelo)
 	}
-	//if ebiten.IsKeyPressed(ebiten.KeySpace)
+	//	if mona.yVelo > 0 && mona.yVelo < gravity {
+	if mona.yVelo < gravity {
+		mona.yCoord += mona.yVelo
+		mona.yVelo += 1
+
+		monaBase := (mona.yCoord - g.view.yCoord + 48 + 1) / 50 // checks immediately BELOW base of sprite
+		monaLeft := (mona.xCoord - g.view.xCoord) / 50
+		monaRight := (mona.xCoord - g.view.xCoord + 48) / 50
+		if levelMap[0][(monaBase)*tileXCount+monaLeft] == 1 || levelMap[0][(monaBase)*tileXCount+monaRight] == 1 {
+			log.Printf("THERE IS A TILE THERE WHILE I AM FALLING")
+			mona.yCoord = (monaBase * 50) - 50 + g.view.yCoord
+			mona.yVelo = gravity
+		}
+		//		log.Printf("> yCoord = %v, yVelo = %v", mona.yCoord, mona.yVelo)
+	}
+	////////////////////////////////////
+	// trying to implement gravity, badly .........................
+	//if mona.yVelo == gravity {
+	// basic gravity fixer, doesn't address jumping
+	monaBase := (mona.yCoord - g.view.yCoord + 48 + 1) / 50 // checks immediately BELOW base of sprite
+	monaLeft := (mona.xCoord - g.view.xCoord) / 50
+	monaRight := (mona.xCoord - g.view.xCoord + 48) / 50
+	//	log.Printf("mona base: %v\tmona left: %v\tmona right:%v\n", monaBase, monaLeft, monaRight)
+	if levelMap[0][(monaBase)*tileXCount+monaLeft] != 1 && levelMap[0][(monaBase)*tileXCount+monaRight] != 1 {
+		if mona.yVelo == gravity {
+			mona.yCoord += 3
+		}
+	}
+	//	} else if levelMap[0][(monaBase)*tileXCount+monaLeft] == 1 || levelMap[0][(monaBase)*tileXCount+monaRight] == 1 {
+	//		mona.yCoord = (monaBase * 50) + 48 - g.view.yCoord
+	//} else {
+	//		mona.yCoord = (monaBase * tileXCount) + 48
+	//	mona.yVelo = gravity
+	//}
+
+	///////////////////////////////////
 	return nil
 }
 
@@ -235,17 +295,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for _, l := range levelMap {
 		for i, t := range l {
-			if t != 0 {
+			switch {
+			case t == 1:
+				top := &ebiten.DrawImageOptions{}
+				top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64((i/tileXCount)*tileSize))
+				g.background.DrawImage(basicBrick.sprite, top)
+				//			log.Printf("> > Tile at %v, %v", float64((i%tileXCount)*tileSize), float64((i/tileXCount)*tileSize))
+			case t == 2:
 				top := &ebiten.DrawImageOptions{}
 				top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
-				g.background.DrawImage(basicBrick.sprite, top)
+				g.background.DrawImage(portal.SubImage(image.Rect(0, 0, 100, 150)).(*ebiten.Image), top)
 			}
 		}
 	}
 
 	msg := ""
 	msg += fmt.Sprintf("Mona xCoord: %d\n", mona.xCoord)
-	msg += fmt.Sprintf("Level xCoord: %d\n", g.view.xCoord)
+	msg += fmt.Sprintf("Mona yCoord: %d\n", mona.yCoord)
+	msg += fmt.Sprintf("Viewer xCoord: %d\n", g.view.xCoord)
+	msg += fmt.Sprintf("Viewer yCoord: %d\n", g.view.yCoord)
 	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
 	ebitenutil.DebugPrint(screen, msg)
 }
