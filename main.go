@@ -37,13 +37,14 @@ var (
 
 	levelBG *ebiten.Image
 	//	charaSprite *ebiten.Image
-	spriteSheet *ebiten.Image
-	brick       *ebiten.Image
-	portal      *ebiten.Image
-	treasure    *ebiten.Image
-	questItem   *ebiten.Image
-	hazard      *ebiten.Image
-	blank       *ebiten.Image
+	spriteSheet     *ebiten.Image
+	brick           *ebiten.Image
+	portal          *ebiten.Image
+	treasure        *ebiten.Image
+	questItem       *ebiten.Image
+	hazard          *ebiten.Image
+	blank           *ebiten.Image
+	gameOverMessage *ebiten.Image
 
 	levelWidth  int
 	levelHeight int
@@ -120,6 +121,7 @@ func init() {
 	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
 	blank = loadImage(FileSystem, "imgs/blank-bg.png")
+	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 }
 
 func hazards(vsx int, vsy int) {
@@ -176,6 +178,7 @@ type Game struct {
 	count         int
 	questItem     bool
 	treasureCount int
+	active        bool
 }
 
 // Viewer is the part of the total level that is visible, as indicated by the X,Y of the upper left corner
@@ -225,8 +228,23 @@ func NewGame() *Game {
 		count:         0,
 		questItem:     false,
 		treasureCount: 0,
+		active:        true,
 	}
 	return game
+}
+
+func (g *Game) levelReset() {
+	log.Printf("Resetting level")
+	g.viewReset()
+	g.count = 0
+	g.questItem = false
+	g.treasureCount = 0
+}
+
+func (g *Game) viewReset() {
+	log.Printf("Resetting viewer")
+	g.view.xCoord = 0
+	g.view.yCoord = winHeight - levelHeight
 }
 
 func NewViewer() *Viewer {
@@ -299,20 +317,29 @@ func end() {
 	log.Printf("End Screen")
 }
 
-func gameOver() {
+func (g *Game) over() {
 	log.Printf("Game Over")
+	g.active = false
 }
 
-func retryLevel() {
+func (g *Game) retryLevel() {
 	log.Printf("Retry level")
+	g.levelReset()
 }
 
 func (c *Character) death() {
+	c.hp_current = 0
 	c.lives--
 	// initiate character death animation
 }
 
 func (g *Game) Update() error {
+	if mona.hp_current == 0 {
+		if mona.lives == 0 {
+			g.over()
+		}
+		g.retryLevel()
+	}
 	g.count++
 	portalFrame = (g.count / 5) % 5
 	treasureFrame = (g.count / 5) % 7
@@ -430,9 +457,9 @@ func (g *Game) Update() error {
 	if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 		mona.death()
 		if mona.lives == 0 {
-			gameOver()
+			g.over()
 		}
-		retryLevel()
+		g.retryLevel()
 
 	}
 	if btlVal == 3 || btlVal == 4 {
@@ -553,6 +580,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), hop)
 		hmsg += fmt.Sprintf("x: %v, y: %v\n", h.xCoord, h.yCoord)
 	}
+
+	if g.active == false {
+		overOp := &ebiten.DrawImageOptions{}
+		screen.DrawImage(gameOverMessage, overOp)
+	}
 	/*
 		noOp := &ebiten.DrawImageOptions{}
 		noOp.GeoM.Translate(float64(250), float64(380))
@@ -576,6 +608,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
 	msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
 	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
+
 	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
 	ebitenutil.DebugPrint(screen, msg)
 }
