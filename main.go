@@ -79,10 +79,10 @@ var (
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
 			0, 0, 0, 4, 0, 5, 0, 0, 6, 4, 0, 0, 0, 5, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		},
@@ -126,7 +126,7 @@ func init() {
 	brick = loadImage(FileSystem, "imgs/brick--test.png")
 	basicBrick = NewBrick("basic", brick)
 
-	portal = loadImage(FileSystem, "imgs/portal--test.png")
+	portal = loadImage(FileSystem, "imgs/portal-b--test.png")
 	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
 	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
