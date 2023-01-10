@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -44,6 +46,7 @@ var (
 	treasure        *ebiten.Image
 	questItem       *ebiten.Image
 	hazard          *ebiten.Image
+	creature        *ebiten.Image
 	blank           *ebiten.Image
 	gameOverMessage *ebiten.Image
 
@@ -80,7 +83,7 @@ var (
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 4, 0, 5, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0,
+			0, 0, 0, 4, 0, 5, 0, 0, 6, 4, 0, 0, 0, 5, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		},
 	}
@@ -94,12 +97,16 @@ var (
 	treasureFrame  int
 	questItemFrame int
 	hazardFrame    int
+	creatureFrame  int
 
-	hazardList []*Hazard
+	hazardList   []*Hazard
+	creatureList []*Creature
 )
 
 func init() {
 	log.Printf("Initializing...")
+
+	rand.Seed(time.Now().UnixNano())
 
 	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
 	// these values are temporarily hard-coded, replace magic numbers later
@@ -123,17 +130,22 @@ func init() {
 	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
 	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
+	creature = loadImage(FileSystem, "imgs/creature--test.png")
 	blank = loadImage(FileSystem, "imgs/blank-bg.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 }
 
-func hazards(vsx int, vsy int) {
+func hazards(vsx int, vsy int) { // rename to indicate that it's populating map with hazards and creatures and things drawn to screen (rather than bg/etc)
 	for i, h := range levelMap[1] {
+		x := (i%tileXCount)*tileSize - vsx
+		y := (i/tileXCount)*tileSize + vsy
 		if h == 5 {
-			x := (i%tileXCount)*tileSize - vsx
-			y := (i/tileXCount)*tileSize + vsy
 			nh := NewHazard("blob", hazard, x, y, 100)
 			hazardList = append(hazardList, nh)
+		}
+		if h == 6 {
+			nc := NewCreature("teen yorp", creature, x, y, 100, 100, "teen yorp")
+			creatureList = append(creatureList, nc)
 		}
 	}
 }
@@ -233,6 +245,21 @@ type Hazard struct {
 	damage int
 }
 
+type Creature struct {
+	name        string
+	sprite      *ebiten.Image
+	facing      int
+	xCoord      int
+	yCoord      int
+	hp_current  int
+	hp_total    int
+	damage      int
+	movement    string // I have no idea how I'm implementing this -- might just key movement style to name, so all same-type creatures move alike
+	seesChar    bool
+	movementCtr int
+	pauseCtr    int
+}
+
 func NewGame() *Game {
 	log.Printf("Creating new game")
 	game := &Game{
@@ -314,6 +341,23 @@ func NewHazard(name string, sprite *ebiten.Image, x int, y int, damage int) *Haz
 	return hazard
 }
 
+func NewCreature(name string, sprite *ebiten.Image, x int, y int, hp int, damage int, movement string) *Creature {
+	log.Printf("Creating new creature")
+	creature := &Creature{
+		name:       name,
+		sprite:     sprite,
+		facing:     50,
+		xCoord:     x,
+		yCoord:     y,
+		hp_current: hp,
+		hp_total:   hp,
+		seesChar:   false,
+		damage:     damage,
+		movement:   name,
+	}
+	return creature
+}
+
 func levelSetup(viewX int, viewY int) {
 	hazards(viewX, viewY)
 }
@@ -349,6 +393,9 @@ func (c *Character) death() {
 
 func (g *Game) Update() error {
 	g.count++
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
+		g.mode = Level
+	}
 	switch g.mode {
 	case Load:
 		if g.count > 200 {
@@ -370,6 +417,7 @@ func (g *Game) Update() error {
 		treasureFrame = (g.count / 5) % 7
 		questItemFrame = (g.count / 5) % 5
 		hazardFrame = (g.count / 5) % 10
+		creatureFrame = (g.count / 5) % 5
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 			mona.facing = 0
 			currentFrame = (g.count / 5) % frameCount
@@ -382,6 +430,9 @@ func (g *Game) Update() error {
 				mona.view.xCoord -= 5
 				for _, h := range hazardList {
 					h.xCoord -= 5
+				}
+				for _, c := range creatureList {
+					c.xCoord -= 5
 				}
 			}
 			monaSide := (mona.xCoord - mona.view.xCoord + 48 + 1) / 50
@@ -401,6 +452,9 @@ func (g *Game) Update() error {
 				mona.xCoord -= 5
 			case mona.view.xCoord < 0:
 				mona.view.xCoord += 5
+				for _, c := range creatureList {
+					c.xCoord += 5
+				}
 				for _, h := range hazardList {
 					h.xCoord += 5
 				}
@@ -438,11 +492,17 @@ func (g *Game) Update() error {
 				for _, h := range hazardList {
 					h.yCoord -= mona.yVelo
 				}
+				for _, c := range creatureList {
+					c.yCoord -= mona.yVelo
+				}
 			case mona.yCoord > 160 && mona.view.yCoord-mona.yVelo > -120 && mona.yVelo > 0:
 				//	mona.yCoord -= mona.yVelo
 				mona.view.yCoord -= mona.yVelo
 				for _, h := range hazardList {
 					h.yCoord -= mona.yVelo
+				}
+				for _, c := range creatureList {
+					c.yCoord -= mona.yVelo
 				}
 			default:
 				mona.yCoord += mona.yVelo
@@ -531,11 +591,48 @@ func (g *Game) Update() error {
 		if btlVal == 2 && bblVal == 2 || btrVal == 2 && bbrVal == 2 {
 			levelComplete()
 		}
+
+		// creature movements
+		for _, c := range creatureList {
+			switch {
+			case c.movementCtr > 0:
+				// keep moving same dir
+				c.movementCtr--
+				if c.facing == 0 && c.xCoord <= 3 {
+					c.movementCtr = 0
+				} else if c.facing == 0 && c.xCoord > 3 {
+					c.xCoord -= 3
+				} else if c.facing == 50 && c.xCoord >= 597 {
+					c.movementCtr = 0
+				} else if c.xCoord < 597 {
+					c.xCoord += 3
+				}
+			case c.seesChar == true:
+				// rampage towards char
+				if c.facing == 0 {
+					c.xCoord -= 10
+				} else {
+					c.xCoord += 10
+				}
+			case c.pauseCtr > 0:
+				// pause
+				if c.pauseCtr%9 == 0 {
+					c.facing = rand.Intn(2) * 50
+				}
+				c.pauseCtr--
+			default:
+				// reset random
+				c.movementCtr = rand.Intn(50) + 20
+				c.pauseCtr = rand.Intn(40) + 20
+				c.facing = rand.Intn(2) * 50
+			}
+		}
 	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	cmsg := "Creatures\n"
 	switch g.mode {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
@@ -581,10 +678,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize+5), float64(i/tileXCount*tileSize+5))
 					tx := treasureFrame * 40
 					blank.DrawImage(treasure.SubImage(image.Rect(tx, 0, tx+40, 40)).(*ebiten.Image), top)
-				case t == 5:
-					if g.questItem == true {
-						log.Printf("Got it")
-					}
 				}
 			}
 		}
@@ -611,6 +704,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			hmsg += fmt.Sprintf("x: %v, y: %v\n", h.xCoord, h.yCoord)
 		}
 
+		for _, c := range creatureList {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(c.xCoord), float64(c.yCoord))
+			cx, cy := creatureFrame*50, c.facing
+			screen.DrawImage(c.sprite.SubImage(image.Rect(cx, cy, cx+50, cy+50)).(*ebiten.Image), op)
+			cmsg += fmt.Sprintf("- x: %v, y: %v, facing: %v\n", c.xCoord, c.yCoord, c.facing)
+		}
+
 		if g.active == false {
 			overOp := &ebiten.DrawImageOptions{}
 			screen.DrawImage(gameOverMessage, overOp)
@@ -628,6 +729,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		//	text.Draw(screen, scoreTreasure, mplusNormalFont, 300, 140, color.White)
 	}
 	msg := ""
+	msg += cmsg
 	//msg += hmsg
 	//	msg += fmt.Sprintf("Is screen cleared every frame? %v\n", ebiten.IsScreenClearedEveryFrame())
 	//	msg += fmt.Sprintf("Empty Grid Spots: %d\n", emptyGridSpot)
