@@ -23,3 +23,23 @@ func loadImage(fs embed.FS, path string) *ebiten.Image {
 	loadedImg := ebiten.NewImageFromImage(img)
 	return loadedImg
 }
+
+/*
+func init() {
+	fontFile, err := FileSystem.Open("fonts/mplus-1p-regular.ttf")
+	if err != nil {
+		log.Fatalf("Error opening font: %v\n", err)
+	}
+	tt, err := opentype.Parse(fontFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+}
+*/
