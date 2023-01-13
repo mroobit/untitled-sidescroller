@@ -322,7 +322,7 @@ func (g *Game) Update() error {
 			switch {
 			case worldMona.view.xCoord == 0 && worldMona.xCoord < 290:
 				worldMona.xCoord += 5
-			case worldMona.view.xCoord == -400 && radiusCheck < radius: // worldMona.xCoord < 500: // but actually, the arc of the circle
+			case worldMona.view.xCoord == -400 && radiusCheck+50 < radius: // worldMona.xCoord < 500: // but actually, the arc of the circle
 				worldMona.xCoord += 5
 			case worldMona.view.xCoord > -400:
 				worldMona.view.xCoord -= 5
@@ -337,6 +337,26 @@ func (g *Game) Update() error {
 				worldMona.xCoord -= 5
 			case worldMona.view.xCoord < 0:
 				worldMona.view.xCoord += 5
+			}
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+			switch {
+			case worldMona.view.yCoord == -520 && worldMona.yCoord < 230:
+				worldMona.yCoord -= 5
+			case worldMona.view.yCoord == 0 && radiusCheck < radius:
+				worldMona.yCoord -= 5
+			case worldMona.view.yCoord < 0:
+				worldMona.view.yCoord += 5
+			}
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+			switch {
+			case worldMona.view.yCoord == 0 && worldMona.yCoord > 250:
+				worldMona.yCoord += 5
+			case worldMona.view.yCoord == -520 && radiusCheck+50 < radius:
+				worldMona.yCoord += 5
+			case worldMona.view.yCoord > -520:
+				worldMona.view.yCoord -= 5
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
