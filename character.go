@@ -25,17 +25,17 @@ type Viewer struct {
 }
 
 type Character struct {
-	name       string
-	sprite     *ebiten.Image
-	view       *Viewer
-	facing     int
-	xCoord     int
-	yCoord     int
-	yVelo      int
-	active     bool
-	hp_current int
-	hp_total   int
-	lives      int
+	name      string
+	sprite    *ebiten.Image
+	view      *Viewer
+	facing    int
+	xCoord    int
+	yCoord    int
+	yVelo     int
+	active    bool
+	hpCurrent int
+	hpTotal   int
+	lives     int
 }
 
 func (c *Character) viewReset() {
@@ -58,17 +58,17 @@ func NewViewer() *Viewer {
 func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Character {
 	log.Printf("Creating new character %s", name)
 	character := &Character{
-		name:       name,
-		sprite:     sprite,
-		view:       view,
-		facing:     0,
-		xCoord:     20,
-		yCoord:     ground,
-		yVelo:      gravity,
-		active:     false,
-		hp_current: hp,
-		hp_total:   hp,
-		lives:      3,
+		name:      name,
+		sprite:    sprite,
+		view:      view,
+		facing:    0,
+		xCoord:    20,
+		yCoord:    ground,
+		yVelo:     gravity,
+		active:    false,
+		hpCurrent: hp,
+		hpTotal:   hp,
+		lives:     3,
 	}
 	return character
 }
@@ -77,7 +77,7 @@ func (c *Character) fade() {
 	log.Printf("Fade character")
 }
 func (c *Character) death() {
-	c.hp_current = 0
+	c.hpCurrent = 0
 	c.lives--
 	// initiate character death animation
 }

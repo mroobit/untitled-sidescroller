@@ -41,12 +41,12 @@ var (
 	ebitengineSplash *ebiten.Image
 	world            *ebiten.Image
 	gooAlley         *ebiten.Image
+	yikesfulMountain *ebiten.Image
 	levelBG          *ebiten.Image
-	//	charaSprite *ebiten.Image
-	portal          *ebiten.Image
-	creature        *ebiten.Image
-	blank           *ebiten.Image
-	gameOverMessage *ebiten.Image
+	portal           *ebiten.Image
+	creature         *ebiten.Image
+	blank            *ebiten.Image
+	gameOverMessage  *ebiten.Image
 
 	levelWidth  int
 	levelHeight int
@@ -81,19 +81,25 @@ var (
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		},
 	}
+	/*
+		worldMap = []int{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+			0, 0, 0, 5094, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		}
 
-	worldMap = []int{
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-		0, 0, 0, 5094, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	}
+		worldMapAlt = [][]int{
+			{1, 600, 300, 30},
+			{2, 400, 500, 50},
+		}
+	*/
 
 	radius = 375.0
 )
@@ -123,6 +129,7 @@ func init() {
 
 	world = loadImage(FileSystem, "imgs/world--test.png")
 	gooAlley = loadImage(FileSystem, "imgs/level-1--test.png")
+	yikesfulMountain = loadImage(FileSystem, "imgs/level-2--test.png")
 	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
 	// these values are temporarily hard-coded, replace magic numbers later
 	levelWidth = 800
@@ -152,12 +159,13 @@ func init() {
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
 	levels = []*Level{
-		{"Goo Alley", false, gooAlley, 500, 600, []string{"Entering Goo Alley", "Goo Alley destroyed you", "With a renewed disgust, you exit Goo Alley."}, levelBG, levelMap},
+		{"Goo Alley", false, gooAlley, 500, 600, 625, 375, []string{"Entering Goo Alley", "Goo Alley destroyed you", "With a renewed disgust, you exit Goo Alley."}, levelBG, levelMap},
+		{"Yikesful Mountain", false, yikesfulMountain, 300, 300, 625, 375, []string{"Approaching Yikesful Mountain", "...yikes.", "Shaking your head, you successfully leave Yikesful Mountain behind you."}, levelBG, levelMap},
 	}
 
 }
 
-func populate(vsx int, vsy int) { // pass level name as a parameter
+func populate(vsx int, vsy int) { // pass level name or index number as a parameter, or change to method with *Level as receiver...
 	// empty lists first, in case any left over from previous level attempt
 	for i, h := range levelMap[1] {
 		x := (i%tileXCount)*tileSize - vsx
@@ -176,7 +184,7 @@ func populate(vsx int, vsy int) { // pass level name as a parameter
 // main sets up game and runs it, or returns error
 func main() {
 
-	log.Printf("Running level test")
+	log.Printf("Starting up Mona Game POC...")
 
 	ebiten.SetWindowSize(winWidth, winHeight)
 	ebiten.SetWindowTitle("Mona Game, POC: Movement in Level Space")
@@ -191,12 +199,17 @@ func main() {
 
 // Game contains all relevant data for game
 type Game struct {
-	mode          Mode
-	background    *ebiten.Image
-	count         int
-	questItem     bool
-	treasureCount int
-	active        bool
+	mode       Mode
+	background *ebiten.Image
+	count      int
+	//lvlComplete   []string // list of names of levels that have been completed
+	//lvlCurrent    string
+	lvlComplete   []int // list of names of levels that have been completed
+	lvlCurrent    int
+	items         []string // change type, but to track which items have been collected
+	questItem     bool     // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
+	treasureCount int      // to deprecate -- use score instead: add up different types of treasure, different values
+	score         int
 }
 
 type Level struct {
@@ -205,6 +218,8 @@ type Level struct {
 	icon       *ebiten.Image
 	mapX       int
 	mapY       int
+	exitX      int
+	exitY      int
 	message    []string      // on entering level, on death, on successful completion
 	background *ebiten.Image // later, this can be []*ebiten.Image, for layered background
 	layout     [][]int
@@ -225,8 +240,8 @@ type Creature struct {
 	facing      int
 	xCoord      int
 	yCoord      int
-	hp_current  int
-	hp_total    int
+	hpCurrent   int
+	hpTotal     int
 	damage      int
 	movement    string // I have no idea how I'm implementing this -- might just key movement style to name, so all same-type creatures move alike
 	seesChar    bool
@@ -241,7 +256,6 @@ func NewGame() *Game {
 		count:         0,
 		questItem:     false,
 		treasureCount: 0,
-		active:        true,
 	}
 	return game
 }
@@ -259,16 +273,16 @@ func NewGame() *Game {
 func NewCreature(name string, sprite *ebiten.Image, x int, y int, hp int, damage int, movement string) *Creature {
 	log.Printf("Creating new creature")
 	creature := &Creature{
-		name:       name,
-		sprite:     sprite,
-		facing:     50,
-		xCoord:     x,
-		yCoord:     y,
-		hp_current: hp,
-		hp_total:   hp,
-		seesChar:   false,
-		damage:     damage,
-		movement:   name,
+		name:      name,
+		sprite:    sprite,
+		facing:    50,
+		xCoord:    x,
+		yCoord:    y,
+		hpCurrent: hp,
+		hpTotal:   hp,
+		seesChar:  false,
+		damage:    damage,
+		movement:  name,
 	}
 	return creature
 }
@@ -277,25 +291,25 @@ func levelSetup(viewX int, viewY int) {
 	populate(viewX, viewY)
 }
 
-func levelComplete() {
-	mona.fade()
-	end()
-}
+/*
+	func levelComplete() {
+		mona.fade()
+		end()
+	}
 
-func end() {
-	log.Printf("End Screen")
-}
+	func end() {
+		log.Printf("End Screen")
+	}
 
-func (g *Game) over() {
-	log.Printf("Game Over")
-	g.active = false
-}
+	func (g *Game) over() {
+		log.Printf("Game Over")
+	}
 
-func (g *Game) retryLevel() {
-	log.Printf("Retry level")
-	// levelReset() -- needs fixing
-}
-
+	func (g *Game) retryLevel() {
+		log.Printf("Retry level")
+		// levelReset() -- needs fixing
+	}
+*/
 func (g *Game) Update() error {
 	g.count++
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
@@ -363,11 +377,13 @@ func (g *Game) Update() error {
 			g.mode = Play
 		}
 	case Play:
-		if mona.hp_current == 0 {
+		if mona.hpCurrent == 0 {
 			if mona.lives == 0 {
-				g.over()
+				//	g.over()
+				log.Printf("Player ran out of lives - Game Over")
 			}
-			g.retryLevel()
+			//		g.retryLevel()
+			log.Printf("Player still has lives -- retry level or return to world?")
 		}
 		portalFrame = (g.count / 5) % 5
 		treasureFrame = (g.count / 5) % 7
@@ -545,6 +561,13 @@ func (g *Game) Update() error {
 		}
 
 		if btlVal == 2 && bblVal == 2 || btrVal == 2 && bbrVal == 2 {
+			//levelComplete()
+			log.Printf("Level Complete")
+		}
+
+		if (mona.xCoord > levels[g.lvlCurrent].exitX && mona.xCoord < levels[g.lvlCurrent].exitX+50 || mona.xCoord+48 > levels[g.lvlCurrent].exitX && mona.xCoord+48 < levels[g.lvlCurrent].exitX+50) && (mona.yCoord > levels[g.lvlCurrent].exitY && mona.yCoord < levels[g.lvlCurrent].exitY+100 || mona.yCoord+48 > levels[g.lvlCurrent].exitY && mona.yCoord+48 < levels[g.lvlCurrent].exitY+100) {
+			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
+			log.Print("Just hit the portal")
 			levelComplete()
 		}
 
@@ -660,7 +683,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			cmsg += fmt.Sprintf("- x: %v, y: %v, facing: %v\n", c.xCoord, c.yCoord, c.facing)
 		}
 
-		if g.active == false {
+		if mona.lives <= 0 {
 			overOp := &ebiten.DrawImageOptions{}
 			screen.DrawImage(gameOverMessage, overOp)
 		}
