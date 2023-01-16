@@ -514,9 +514,11 @@ func (g *Game) Update() error {
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 			mona.death()
 			if mona.lives == 0 {
-				g.over()
+				log.Printf("Game over, no lives left")
+				//g.over()
 			}
-			g.retryLevel()
+			log.Printf("Retry Level or return to world map?")
+			//g.retryLevel()
 
 		}
 		if btlVal == 3 || btlVal == 4 {
@@ -568,7 +570,8 @@ func (g *Game) Update() error {
 		if (mona.xCoord > levels[g.lvlCurrent].exitX && mona.xCoord < levels[g.lvlCurrent].exitX+50 || mona.xCoord+48 > levels[g.lvlCurrent].exitX && mona.xCoord+48 < levels[g.lvlCurrent].exitX+50) && (mona.yCoord > levels[g.lvlCurrent].exitY && mona.yCoord < levels[g.lvlCurrent].exitY+100 || mona.yCoord+48 > levels[g.lvlCurrent].exitY && mona.yCoord+48 < levels[g.lvlCurrent].exitY+100) {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
 			log.Print("Just hit the portal")
-			levelComplete()
+			//levelComplete()
+			log.Printf("Level complete")
 		}
 
 		// creature movements
