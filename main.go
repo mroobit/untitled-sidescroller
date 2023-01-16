@@ -567,11 +567,12 @@ func (g *Game) Update() error {
 			log.Printf("Level Complete")
 		}
 
-		if (mona.xCoord > levels[g.lvlCurrent].exitX && mona.xCoord < levels[g.lvlCurrent].exitX+50 || mona.xCoord+48 > levels[g.lvlCurrent].exitX && mona.xCoord+48 < levels[g.lvlCurrent].exitX+50) && (mona.yCoord > levels[g.lvlCurrent].exitY && mona.yCoord < levels[g.lvlCurrent].exitY+100 || mona.yCoord+48 > levels[g.lvlCurrent].exitY && mona.yCoord+48 < levels[g.lvlCurrent].exitY+100) {
+		if (mona.xCoord > levels[g.lvlCurrent].exitX+mona.view.xCoord && mona.xCoord < levels[g.lvlCurrent].exitX+50+mona.view.xCoord || mona.xCoord+48 > levels[g.lvlCurrent].exitX+mona.view.xCoord && mona.xCoord+48 < levels[g.lvlCurrent].exitX+50+mona.view.xCoord) && (mona.yCoord > levels[g.lvlCurrent].exitY+mona.view.yCoord && mona.yCoord < levels[g.lvlCurrent].exitY+100+mona.view.yCoord || mona.yCoord+48 > levels[g.lvlCurrent].exitY+mona.view.yCoord && mona.yCoord+48 < levels[g.lvlCurrent].exitY+100+mona.view.yCoord) {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
 			log.Print("Just hit the portal")
 			//levelComplete()
 			log.Printf("Level complete")
+			g.mode = World
 		}
 
 		// creature movements
