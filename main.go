@@ -181,6 +181,11 @@ func populate(vsx int, vsy int) { // pass level name or index number as a parame
 	}
 }
 
+func clearLevel() { // clear out all hazards, creatures from drawing lists
+	hazardList = []*Hazard{}
+	creatureList = []*Creature{}
+}
+
 // main sets up game and runs it, or returns error
 func main() {
 
@@ -190,7 +195,7 @@ func main() {
 	ebiten.SetWindowTitle("Mona Game, POC: Movement in Level Space")
 
 	g := NewGame()
-	levelSetup(mona.view.xCoord, mona.view.yCoord)
+	// levelSetup(mona.view.xCoord, mona.view.yCoord)
 	//	g.Setup()
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
@@ -376,6 +381,15 @@ func (g *Game) Update() error {
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
 			g.mode = Play
 		}
+		for i, _ := range levels {
+			if ((worldMona.xCoord > levels[i].mapX+worldMona.view.xCoord && mona.xCoord < levels[i].mapX+50+worldMona.view.xCoord || worldMona.xCoord+48 > levels[i].mapX+worldMona.view.xCoord && worldMona.xCoord+48 < levels[i].mapX+50+worldMona.view.xCoord) && (worldMona.yCoord > levels[i].mapY+worldMona.view.yCoord && worldMona.yCoord < levels[i].mapY+100+worldMona.view.yCoord || worldMona.yCoord+48 > levels[i].mapY+worldMona.view.yCoord && worldMona.yCoord+48 < levels[i].mapY+100+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && levels[i].complete == false {
+				mona.xyReset()
+				mona.viewReset()
+				levelSetup(mona.view.xCoord, mona.view.yCoord)
+				g.lvlCurrent = i
+				g.mode = Play
+			}
+		}
 	case Play:
 		if mona.hpCurrent == 0 {
 			if mona.lives == 0 {
@@ -513,11 +527,13 @@ func (g *Game) Update() error {
 		bbrVal := levelMap[1][blockBaseRight]
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 			mona.death()
+			clearLevel()
 			if mona.lives == 0 {
 				log.Printf("Game over, no lives left")
 				//g.over()
 			}
 			log.Printf("Retry Level or return to world map?")
+			g.mode = World
 			//g.retryLevel()
 
 		}
@@ -569,6 +585,9 @@ func (g *Game) Update() error {
 
 		if (mona.xCoord > levels[g.lvlCurrent].exitX+mona.view.xCoord && mona.xCoord < levels[g.lvlCurrent].exitX+50+mona.view.xCoord || mona.xCoord+48 > levels[g.lvlCurrent].exitX+mona.view.xCoord && mona.xCoord+48 < levels[g.lvlCurrent].exitX+50+mona.view.xCoord) && (mona.yCoord > levels[g.lvlCurrent].exitY+mona.view.yCoord && mona.yCoord < levels[g.lvlCurrent].exitY+100+mona.view.yCoord || mona.yCoord+48 > levels[g.lvlCurrent].exitY+mona.view.yCoord && mona.yCoord+48 < levels[g.lvlCurrent].exitY+100+mona.view.yCoord) {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
+			levels[g.lvlCurrent].complete = true
+			g.lvlCurrent = 0
+			clearLevel()
 			log.Print("Just hit the portal")
 			//levelComplete()
 			log.Printf("Level complete")
