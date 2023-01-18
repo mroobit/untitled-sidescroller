@@ -52,9 +52,11 @@ func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index nu
 func clearLevel() { // clear out all hazards, creatures from drawing lists
 	hazardList = []*Hazard{}
 	creatureList = []*Creature{}
+	levelMap = [][]int{}
 }
 
 func levelSetup(level *LevelData, viewX int, viewY int) {
+	levelMap = append(levelMap, level.Layout...)
 	populate(level, viewX, viewY)
 }
 

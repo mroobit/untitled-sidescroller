@@ -66,6 +66,8 @@ var (
 	//levels       []*Level
 	levelData    []*LevelData
 	creatureList []*Creature
+
+	levelMap [][]int
 )
 
 func init() {
@@ -112,8 +114,8 @@ func init() {
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
 	levelImages := map[string][]*ebiten.Image{
-		"Goo Alley": []*ebiten.Image{gooAlley, levelBG},
-		"Yikesful Mountain": []*ebiten.Image{yikesfulMountain, levelBG},
+		"Goo Alley":         {gooAlley, levelBG},
+		"Yikesful Mountain": {yikesfulMountain, levelBG},
 	}
 	lvlContent, err := ioutil.ReadFile("./levels.json")
 	if err != nil {
@@ -124,7 +126,7 @@ func init() {
 	if err != nil {
 		log.Fatal("Error during Unmarshalling: ", err)
 	}
-	
+
 	for _, l := range levelData {
 		l.icon = levelImages[l.Name][0]
 		l.background = levelImages[l.Name][1]
@@ -245,19 +247,27 @@ func (g *Game) Update() error {
 				worldMona.view.yCoord -= 5
 			}
 		}
-		if ebiten.IsKeyPressed(ebiten.KeySpace) {
-			g.mode = Play
-		}
-		for i, _ := range levelData {
-			if ((worldMona.xCoord > levelData[i].WorldX+worldMona.view.xCoord && mona.xCoord < levelData[i].WorldX+50+worldMona.view.xCoord || worldMona.xCoord+48 > levelData[i].WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < levelData[i].WorldX+50+worldMona.view.xCoord) && (worldMona.yCoord > levelData[i].WorldY+worldMona.view.yCoord && worldMona.yCoord < levelData[i].WorldY+100+worldMona.view.yCoord || worldMona.yCoord+48 > levelData[i].WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < levelData[i].WorldY+100+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && levelData[i].Complete == false {
+		//		if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		//			g.mode = Play
+		//		}
+		for i, l := range levelData {
+			if ebiten.IsKeyPressed(ebiten.KeySpace) {
+				// diagnostics
+				log.Printf("Level %d", i)
+				log.Printf("Level Complete? %v", l.Complete)
+				log.Printf("World Mona X,Y: %d, %d", worldMona.xCoord, worldMona.yCoord)
+				log.Printf("View X, Y: %d, %d", worldMona.view.xCoord, worldMona.view.yCoord)
+				log.Printf("Level location: %d, %d", l.WorldX+worldMona.view.xCoord, l.WorldY+worldMona.view.yCoord)
+			}
+			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord || worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) && (worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord || worldMona.yCoord+48 > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < l.WorldY+150+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && l.Complete == false {
 				mona.xyReset()
 				mona.viewReset()
 				mona.hpCurrent = mona.hpTotal
-				levelSetup(levelData[i], mona.view.xCoord, mona.view.yCoord)
+				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
 				g.lvlCurrent = i
 				g.mode = Play
 			}
-		} 
+		}
 	case Play:
 		if mona.hpCurrent == 0 {
 			if mona.lives == 0 {
@@ -445,7 +455,7 @@ func (g *Game) Update() error {
 		if (mona.xCoord > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord || mona.xCoord+48 > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord+48 < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord) && (mona.yCoord > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord || mona.yCoord+48 > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord+48 < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord) {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
 			levelData[g.lvlCurrent].Complete = true
-			g.lvlCurrent = 0
+			g.lvlCurrent = -1
 			clearLevel()
 			log.Print("Just hit the portal")
 			//levelComplete()
@@ -584,8 +594,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//	msg += fmt.Sprintf("Mona yCoord: %d\n", mona.yCoord)
 	//	msg += fmt.Sprintf("Viewer xCoord: %d\n", g.view.xCoord)
 	//	msg += fmt.Sprintf("Viewer yCoord: %d\n", g.view.yCoord)
-	msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
-	msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
+	//msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
+	//msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
+
+	msg += fmt.Sprintf("Levels Completed: %v\n", g.lvlComplete)
+	msg += fmt.Sprintf("Current Level: %v\n", g.lvlCurrent)
 	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
 
 	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
