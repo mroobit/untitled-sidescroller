@@ -2,11 +2,54 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"image/png"
+	"io/ioutil"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+func loadAssets() {
+	world = loadImage(FileSystem, "imgs/world--test.png")
+	gooAlley = loadImage(FileSystem, "imgs/level-1--test.png")
+	yikesfulMountain = loadImage(FileSystem, "imgs/level-2--test.png")
+	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
+
+	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")
+
+	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
+
+	brick = loadImage(FileSystem, "imgs/brick--test.png")
+	portal = loadImage(FileSystem, "imgs/portal-b--test.png")
+	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
+	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
+	hazard = loadImage(FileSystem, "imgs/blob--test.png")
+	creature = loadImage(FileSystem, "imgs/creature--test.png")
+	blank = loadImage(FileSystem, "imgs/blank-bg.png")
+	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
+
+	levelImages := map[string][]*ebiten.Image{
+		"Goo Alley":         {gooAlley, levelBG},
+		"Yikesful Mountain": {yikesfulMountain, levelBG},
+	}
+
+	lvlContent, err := ioutil.ReadFile("./levels.json")
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
+	}
+
+	err = json.Unmarshal(lvlContent, &levelData)
+	if err != nil {
+		log.Fatal("Error during Unmarshalling: ", err)
+	}
+
+	for _, l := range levelData {
+		l.icon = levelImages[l.Name][0]
+		l.background = levelImages[l.Name][1]
+	}
+
+}
 
 func loadImage(fs embed.FS, path string) *ebiten.Image {
 	log.Printf("Loading %s", path)

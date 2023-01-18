@@ -38,10 +38,10 @@ type Character struct {
 	lives     int
 }
 
-func (c *Character) xyReset() {
+func (c *Character) xyReset(x, y int) {
 	log.Printf("Resetting x,y coordinates")
-	c.xCoord = 20
-	c.yCoord = ground
+	c.xCoord = x
+	c.yCoord = y
 }
 func (c *Character) viewReset() {
 	log.Printf("Resetting viewer")

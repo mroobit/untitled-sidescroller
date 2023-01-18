@@ -3,10 +3,8 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
 	"image"
-	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
@@ -63,7 +61,6 @@ var (
 	portalFrame   int
 	creatureFrame int
 
-	//levels       []*Level
 	levelData    []*LevelData
 	creatureList []*Creature
 
@@ -81,11 +78,8 @@ func init() {
 		log.Printf("Initializing...")
 	*/
 	rand.Seed(time.Now().UnixNano())
+	loadAssets()
 
-	world = loadImage(FileSystem, "imgs/world--test.png")
-	gooAlley = loadImage(FileSystem, "imgs/level-1--test.png")
-	yikesfulMountain = loadImage(FileSystem, "imgs/level-2--test.png")
-	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
 	// these values are temporarily hard-coded, replace magic numbers later
 	levelWidth = 800
 	levelHeight = 600
@@ -93,44 +87,15 @@ func init() {
 	monaView = NewViewer()
 	worldMonaView = NewViewer()
 
-	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")
-
-	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
 	currentFrame = defaultFrame
 	treasureFrame = defaultFrame
 	questItemFrame = defaultFrame
+
 	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
 	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
 
-	brick = loadImage(FileSystem, "imgs/brick--test.png")
 	basicBrick = NewBrick("basic", brick)
 
-	portal = loadImage(FileSystem, "imgs/portal-b--test.png")
-	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
-	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
-	hazard = loadImage(FileSystem, "imgs/blob--test.png")
-	creature = loadImage(FileSystem, "imgs/creature--test.png")
-	blank = loadImage(FileSystem, "imgs/blank-bg.png")
-	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
-
-	levelImages := map[string][]*ebiten.Image{
-		"Goo Alley":         {gooAlley, levelBG},
-		"Yikesful Mountain": {yikesfulMountain, levelBG},
-	}
-	lvlContent, err := ioutil.ReadFile("./levels.json")
-	if err != nil {
-		log.Fatal("Error when opening file: ", err)
-	}
-
-	err = json.Unmarshal(lvlContent, &levelData)
-	if err != nil {
-		log.Fatal("Error during Unmarshalling: ", err)
-	}
-
-	for _, l := range levelData {
-		l.icon = levelImages[l.Name][0]
-		l.background = levelImages[l.Name][1]
-	}
 }
 
 // main sets up game and runs it, or returns error
@@ -152,6 +117,7 @@ type Game struct {
 	mode       Mode
 	background *ebiten.Image
 	count      int
+	// currently have 2 ways to track completion: in *LevelData and in *Game
 	//lvlComplete   []string // list of names of levels that have been completed
 	//lvlCurrent    string
 	lvlComplete   []int // list of names of levels that have been completed
@@ -260,7 +226,7 @@ func (g *Game) Update() error {
 				log.Printf("Level location: %d, %d", l.WorldX+worldMona.view.xCoord, l.WorldY+worldMona.view.yCoord)
 			}
 			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord || worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) && (worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord || worldMona.yCoord+48 > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < l.WorldY+150+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && l.Complete == false {
-				mona.xyReset()
+				//mona.xyReset()
 				mona.viewReset()
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
@@ -456,6 +422,7 @@ func (g *Game) Update() error {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
 			levelData[g.lvlCurrent].Complete = true
 			g.lvlCurrent = -1
+			g.questItem = false
 			clearLevel()
 			log.Print("Just hit the portal")
 			//levelComplete()
