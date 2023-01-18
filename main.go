@@ -3,8 +3,10 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"image"
+	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
@@ -51,56 +53,6 @@ var (
 	levelWidth  int
 	levelHeight int
 
-	levelMap = [][]int{
-		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		},
-		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
-			0, 0, 0, 4, 0, 5, 0, 0, 6, 4, 0, 0, 0, 5, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		},
-	}
-	/*
-		worldMap = []int{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-			0, 0, 0, 5094, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		}
-
-		worldMapAlt = [][]int{
-			{1, 600, 300, 30},
-			{2, 400, 500, 50},
-		}
-	*/
-
 	radius = 375.0
 )
 
@@ -111,7 +63,8 @@ var (
 	portalFrame   int
 	creatureFrame int
 
-	levels       []*Level
+	//levels       []*Level
+	levelData    []*LevelData
 	creatureList []*Creature
 )
 
@@ -158,32 +111,24 @@ func init() {
 	blank = loadImage(FileSystem, "imgs/blank-bg.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
-	levels = []*Level{
-		{"Goo Alley", false, gooAlley, 500, 600, 625, 375, []string{"Entering Goo Alley", "Goo Alley destroyed you", "With a renewed disgust, you exit Goo Alley."}, levelBG, levelMap},
-		{"Yikesful Mountain", false, yikesfulMountain, 300, 300, 625, 375, []string{"Approaching Yikesful Mountain", "...yikes.", "Shaking your head, you successfully leave Yikesful Mountain behind you."}, levelBG, levelMap},
+	levelImages := map[string][]*ebiten.Image{
+		"Goo Alley": []*ebiten.Image{gooAlley, levelBG},
+		"Yikesful Mountain": []*ebiten.Image{yikesfulMountain, levelBG},
+	}
+	lvlContent, err := ioutil.ReadFile("./levels.json")
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
 	}
 
-}
-
-func populate(vsx int, vsy int) { // pass level name or index number as a parameter, or change to method with *Level as receiver...
-	// empty lists first, in case any left over from previous level attempt
-	for i, h := range levelMap[1] {
-		x := (i%tileXCount)*tileSize - vsx
-		y := (i/tileXCount)*tileSize + vsy
-		if h == 5 {
-			nh := NewHazard("blob", hazard, 10, x, y, 100)
-			hazardList = append(hazardList, nh)
-		}
-		if h == 6 {
-			nc := NewCreature("teen yorp", creature, x, y, 100, 100, "teen yorp")
-			creatureList = append(creatureList, nc)
-		}
+	err = json.Unmarshal(lvlContent, &levelData)
+	if err != nil {
+		log.Fatal("Error during Unmarshalling: ", err)
 	}
-}
-
-func clearLevel() { // clear out all hazards, creatures from drawing lists
-	hazardList = []*Hazard{}
-	creatureList = []*Creature{}
+	
+	for _, l := range levelData {
+		l.icon = levelImages[l.Name][0]
+		l.background = levelImages[l.Name][1]
+	}
 }
 
 // main sets up game and runs it, or returns error
@@ -195,8 +140,6 @@ func main() {
 	ebiten.SetWindowTitle("Mona Game, POC: Movement in Level Space")
 
 	g := NewGame()
-	// levelSetup(mona.view.xCoord, mona.view.yCoord)
-	//	g.Setup()
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
@@ -211,23 +154,11 @@ type Game struct {
 	//lvlCurrent    string
 	lvlComplete   []int // list of names of levels that have been completed
 	lvlCurrent    int
+	lvl           *Level
 	items         []string // change type, but to track which items have been collected
 	questItem     bool     // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
 	treasureCount int      // to deprecate -- use score instead: add up different types of treasure, different values
 	score         int
-}
-
-type Level struct {
-	name       string
-	complete   bool
-	icon       *ebiten.Image
-	mapX       int
-	mapY       int
-	exitX      int
-	exitY      int
-	message    []string      // on entering level, on death, on successful completion
-	background *ebiten.Image // later, this can be []*ebiten.Image, for layered background
-	layout     [][]int
 }
 
 type Mode int
@@ -238,21 +169,6 @@ const (
 	World
 	Play
 )
-
-type Creature struct {
-	name        string
-	sprite      *ebiten.Image
-	facing      int
-	xCoord      int
-	yCoord      int
-	hpCurrent   int
-	hpTotal     int
-	damage      int
-	movement    string // I have no idea how I'm implementing this -- might just key movement style to name, so all same-type creatures move alike
-	seesChar    bool
-	movementCtr int
-	pauseCtr    int
-}
 
 func NewGame() *Game {
 	log.Printf("Creating new game")
@@ -265,60 +181,10 @@ func NewGame() *Game {
 	return game
 }
 
-/*
-	func (g *Game) levelReset() {
-		log.Printf("Resetting level")
-		mona.viewReset()
-		g.count = 0
-		g.questItem = false
-		g.treasureCount = 0
-	}
-*/
-
-func NewCreature(name string, sprite *ebiten.Image, x int, y int, hp int, damage int, movement string) *Creature {
-	log.Printf("Creating new creature")
-	creature := &Creature{
-		name:      name,
-		sprite:    sprite,
-		facing:    50,
-		xCoord:    x,
-		yCoord:    y,
-		hpCurrent: hp,
-		hpTotal:   hp,
-		seesChar:  false,
-		damage:    damage,
-		movement:  name,
-	}
-	return creature
-}
-
-func levelSetup(viewX int, viewY int) {
-	populate(viewX, viewY)
-}
-
-/*
-	func levelComplete() {
-		mona.fade()
-		end()
-	}
-
-	func end() {
-		log.Printf("End Screen")
-	}
-
-	func (g *Game) over() {
-		log.Printf("Game Over")
-	}
-
-	func (g *Game) retryLevel() {
-		log.Printf("Retry level")
-		// levelReset() -- needs fixing
-	}
-*/
 func (g *Game) Update() error {
 	g.count++
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
-		g.mode = Play
+		g.mode = World
 	}
 	switch g.mode {
 	case Load:
@@ -327,6 +193,7 @@ func (g *Game) Update() error {
 			log.Printf("Changing mode to Menu")
 		}
 	case Menu:
+		log.Printf("Changing mode to World")
 		g.mode = World
 	case World:
 		if worldMona.xCoord == 20 {
@@ -381,15 +248,16 @@ func (g *Game) Update() error {
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
 			g.mode = Play
 		}
-		for i, _ := range levels {
-			if ((worldMona.xCoord > levels[i].mapX+worldMona.view.xCoord && mona.xCoord < levels[i].mapX+50+worldMona.view.xCoord || worldMona.xCoord+48 > levels[i].mapX+worldMona.view.xCoord && worldMona.xCoord+48 < levels[i].mapX+50+worldMona.view.xCoord) && (worldMona.yCoord > levels[i].mapY+worldMona.view.yCoord && worldMona.yCoord < levels[i].mapY+100+worldMona.view.yCoord || worldMona.yCoord+48 > levels[i].mapY+worldMona.view.yCoord && worldMona.yCoord+48 < levels[i].mapY+100+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && levels[i].complete == false {
+		for i, _ := range levelData {
+			if ((worldMona.xCoord > levelData[i].WorldX+worldMona.view.xCoord && mona.xCoord < levelData[i].WorldX+50+worldMona.view.xCoord || worldMona.xCoord+48 > levelData[i].WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < levelData[i].WorldX+50+worldMona.view.xCoord) && (worldMona.yCoord > levelData[i].WorldY+worldMona.view.yCoord && worldMona.yCoord < levelData[i].WorldY+100+worldMona.view.yCoord || worldMona.yCoord+48 > levelData[i].WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < levelData[i].WorldY+100+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && levelData[i].Complete == false {
 				mona.xyReset()
 				mona.viewReset()
-				levelSetup(mona.view.xCoord, mona.view.yCoord)
+				mona.hpCurrent = mona.hpTotal
+				levelSetup(levelData[i], mona.view.xCoord, mona.view.yCoord)
 				g.lvlCurrent = i
 				g.mode = Play
 			}
-		}
+		} 
 	case Play:
 		if mona.hpCurrent == 0 {
 			if mona.lives == 0 {
@@ -424,7 +292,6 @@ func (g *Game) Update() error {
 			monaSide := (mona.xCoord - mona.view.xCoord + 48 + 1) / 50
 			monaTop := (mona.yCoord - mona.view.yCoord) / 50
 			if levelMap[0][monaTop*tileXCount+monaSide] == 1 /* || levelMap[0][monaBase*tileXCount+monaSide] == 1*/ {
-				//		log.Printf("There is a wall here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 				mona.xCoord -= 5
 			}
 		}
@@ -448,7 +315,6 @@ func (g *Game) Update() error {
 			monaSide := (mona.xCoord - mona.view.xCoord) / 50
 			monaTop := (mona.yCoord - mona.view.yCoord) / 50
 			if levelMap[0][monaTop*tileXCount+monaSide] == 1 {
-				//		log.Printf("Oh a different wall")
 				mona.xCoord += 5
 			}
 		}
@@ -467,7 +333,6 @@ func (g *Game) Update() error {
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
 			mona.yVelo = -19
-			//		log.Printf("JUMP! velo = %v\nyCoord = %v, yVelo = %v", mona.yVelo, mona.yCoord, mona.yVelo)
 		}
 		if mona.yVelo < gravity {
 			// screen movement vs player movement
@@ -500,7 +365,6 @@ func (g *Game) Update() error {
 				monaLeft := (mona.xCoord - mona.view.xCoord) / 50
 				monaRight := (mona.xCoord - mona.view.xCoord + 48) / 50
 				if levelMap[0][(monaBase)*tileXCount+monaLeft] == 1 || levelMap[0][(monaBase)*tileXCount+monaRight] == 1 {
-					//			log.Printf("THERE IS A TILE THERE WHILE I AM FALLING")
 					mona.yCoord = (monaBase * 50) - 50 + mona.view.yCoord
 					mona.yVelo = gravity
 				}
@@ -578,14 +442,9 @@ func (g *Game) Update() error {
 			blank.Clear()
 		}
 
-		if btlVal == 2 && bblVal == 2 || btrVal == 2 && bbrVal == 2 {
-			//levelComplete()
-			log.Printf("Level Complete")
-		}
-
-		if (mona.xCoord > levels[g.lvlCurrent].exitX+mona.view.xCoord && mona.xCoord < levels[g.lvlCurrent].exitX+50+mona.view.xCoord || mona.xCoord+48 > levels[g.lvlCurrent].exitX+mona.view.xCoord && mona.xCoord+48 < levels[g.lvlCurrent].exitX+50+mona.view.xCoord) && (mona.yCoord > levels[g.lvlCurrent].exitY+mona.view.yCoord && mona.yCoord < levels[g.lvlCurrent].exitY+100+mona.view.yCoord || mona.yCoord+48 > levels[g.lvlCurrent].exitY+mona.view.yCoord && mona.yCoord+48 < levels[g.lvlCurrent].exitY+100+mona.view.yCoord) {
+		if (mona.xCoord > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord || mona.xCoord+48 > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord+48 < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord) && (mona.yCoord > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord || mona.yCoord+48 > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord+48 < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord) {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
-			levels[g.lvlCurrent].complete = true
+			levelData[g.lvlCurrent].Complete = true
 			g.lvlCurrent = 0
 			clearLevel()
 			log.Print("Just hit the portal")
@@ -643,9 +502,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(worldMona.view.xCoord), float64(worldMona.view.yCoord))
 		screen.DrawImage(world, op)
-		for _, l := range levels {
+		for _, l := range levelData {
 			lop := &ebiten.DrawImageOptions{}
-			lop.GeoM.Translate(float64(l.mapX), float64(l.mapY))
+			lop.GeoM.Translate(float64(l.WorldX), float64(l.WorldY))
 			world.DrawImage(l.icon, lop)
 		}
 		op = &ebiten.DrawImageOptions{}
