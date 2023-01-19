@@ -10,11 +10,11 @@ Currently there is a rough semi-playable level (that cannot be won, but which ca
 **Playable Level**
 - [x] Player Movement (L/R, Jump)
 - [ ] Collision Logic (rough)
-    - [ ] Portal (level completion)
+    - [x] Portal (level completion)
     - [x] Brick
     - [x] Quest Item (collect, activate portal)
     - [x] Treasure (collect, +score)
-    - [x] Hazard (damage player)
+    - [x] Hazard (damage player, level failure)
     - [ ] Creature (damage player)
 - [ ] Generalize Collision Logic (address collisions between any two objects)
 - [ ] Creature Behaviors
@@ -36,7 +36,7 @@ Currently there is a rough semi-playable level (that cannot be won, but which ca
 - [x] Background planet, city placeholders
 - [x] Basic movement
 - [ ] Simple Menu
-    - [ ] Enter level from map (by walking character on top of it and pressing a key)
+    - [x] Enter level from map (by walking character on top of it and pressing a key)
     - [ ] Exit to Main Menu
 **Main Menu**
 - [ ] Start New Game
