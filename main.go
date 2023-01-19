@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -38,149 +39,70 @@ var (
 	FileSystem embed.FS
 
 	ebitengineSplash *ebiten.Image
+	world            *ebiten.Image
+	gooAlley         *ebiten.Image
+	yikesfulMountain *ebiten.Image
 	levelBG          *ebiten.Image
-	//	charaSprite *ebiten.Image
-	spriteSheet     *ebiten.Image
-	brick           *ebiten.Image
-	portal          *ebiten.Image
-	treasure        *ebiten.Image
-	questItem       *ebiten.Image
-	hazard          *ebiten.Image
-	creature        *ebiten.Image
-	blank           *ebiten.Image
-	gameOverMessage *ebiten.Image
+	portal           *ebiten.Image
+	creature         *ebiten.Image
+	blank            *ebiten.Image
+	gameOverMessage  *ebiten.Image
 
 	levelWidth  int
 	levelHeight int
 
-	monaView *Viewer
-
-	mona       *Character
-	basicBrick *Brick
-	levelMap   = [][]int{
-		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		},
-		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
-			0, 0, 0, 4, 0, 5, 0, 0, 6, 4, 0, 0, 0, 5, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		},
-	}
+	radius = 375.0
 )
 
 var (
 	//	mplusNormalFont font.Face
 
-	currentFrame   int
-	portalFrame    int
-	treasureFrame  int
-	questItemFrame int
-	hazardFrame    int
-	creatureFrame  int
+	currentFrame  int
+	portalFrame   int
+	creatureFrame int
 
-	hazardList   []*Hazard
+	levelData    []*LevelData
 	creatureList []*Creature
+
+	levelMap [][]int
 )
 
 func init() {
-	log.Printf("Initializing...")
-
+	/*
+		f, err := os.OpenFile("game.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		log.SetOutput(f)
+		log.Printf("Initializing...")
+	*/
 	rand.Seed(time.Now().UnixNano())
-
-	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
-	// these values are temporarily hard-coded, replace magic numbers later
-	levelWidth = 800
-	levelHeight = 600
+	loadAssets()
 
 	monaView = NewViewer()
+	worldMonaView = NewViewer()
 
-	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")
-
-	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
 	currentFrame = defaultFrame
 	treasureFrame = defaultFrame
 	questItemFrame = defaultFrame
-	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
 
-	brick = loadImage(FileSystem, "imgs/brick--test.png")
+	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
+	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
+
 	basicBrick = NewBrick("basic", brick)
 
-	portal = loadImage(FileSystem, "imgs/portal-b--test.png")
-	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
-	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
-	hazard = loadImage(FileSystem, "imgs/blob--test.png")
-	creature = loadImage(FileSystem, "imgs/creature--test.png")
-	blank = loadImage(FileSystem, "imgs/blank-bg.png")
-	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 }
-
-func hazards(vsx int, vsy int) { // rename to indicate that it's populating map with hazards and creatures and things drawn to screen (rather than bg/etc)
-	for i, h := range levelMap[1] {
-		x := (i%tileXCount)*tileSize - vsx
-		y := (i/tileXCount)*tileSize + vsy
-		if h == 5 {
-			nh := NewHazard("blob", hazard, x, y, 100)
-			hazardList = append(hazardList, nh)
-		}
-		if h == 6 {
-			nc := NewCreature("teen yorp", creature, x, y, 100, 100, "teen yorp")
-			creatureList = append(creatureList, nc)
-		}
-	}
-}
-
-/*
-func init() {
-	fontFile, err := FileSystem.Open("fonts/mplus-1p-regular.ttf")
-	if err != nil {
-		log.Fatalf("Error opening font: %v\n", err)
-	}
-	tt, err := opentype.Parse(fontFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	const dpi = 72
-	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    24,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
-}
-*/
 
 // main sets up game and runs it, or returns error
 func main() {
 
-	log.Printf("Running level test")
+	log.Printf("Starting up Mona Game POC...")
 
 	ebiten.SetWindowSize(winWidth, winHeight)
 	ebiten.SetWindowTitle("Mona Game, POC: Movement in Level Space")
 
 	g := NewGame()
-	levelSetup(mona.view.xCoord, mona.view.yCoord)
-	//	g.Setup()
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
@@ -188,12 +110,19 @@ func main() {
 
 // Game contains all relevant data for game
 type Game struct {
-	mode          Mode
-	background    *ebiten.Image
-	count         int
-	questItem     bool
-	treasureCount int
-	active        bool
+	mode       Mode
+	background *ebiten.Image
+	count      int
+	// currently have 2 ways to track completion: in *LevelData and in *Game
+	//lvlComplete   []string // list of names of levels that have been completed
+	//lvlCurrent    string
+	lvlComplete   []int // list of names of levels that have been completed
+	lvlCurrent    int
+	lvl           *Level
+	items         []string // change type, but to track which items have been collected
+	questItem     bool     // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
+	treasureCount int      // to deprecate -- use score instead: add up different types of treasure, different values
+	score         int
 }
 
 type Mode int
@@ -202,63 +131,8 @@ const (
 	Load Mode = iota
 	Menu
 	World
-	Level
+	Play
 )
-
-// Viewer is the part of the total level that is visible, as indicated by the X,Y of the upper left corner
-type Viewer struct {
-	xCoord int
-	yCoord int
-	width  int
-	height int
-}
-
-type Character struct {
-	name       string
-	sprite     *ebiten.Image
-	view       *Viewer
-	facing     int
-	xCoord     int
-	yCoord     int
-	yVelo      int
-	active     bool
-	hp_current int
-	hp_total   int
-	lives      int
-}
-
-type Brick struct {
-	name         string
-	sprite       *ebiten.Image
-	impenetrable bool // can you walk through it
-	supportive   bool // can you land on it
-	destructible bool // can you destroy it
-	//lethal	bool		// will it kill you on contact
-	damage int // amount of damage per encounter -- if lethal, set absurdly high
-}
-
-type Hazard struct {
-	name   string
-	sprite *ebiten.Image
-	xCoord int
-	yCoord int
-	damage int
-}
-
-type Creature struct {
-	name        string
-	sprite      *ebiten.Image
-	facing      int
-	xCoord      int
-	yCoord      int
-	hp_current  int
-	hp_total    int
-	damage      int
-	movement    string // I have no idea how I'm implementing this -- might just key movement style to name, so all same-type creatures move alike
-	seesChar    bool
-	movementCtr int
-	pauseCtr    int
-}
 
 func NewGame() *Game {
 	log.Printf("Creating new game")
@@ -267,134 +141,14 @@ func NewGame() *Game {
 		count:         0,
 		questItem:     false,
 		treasureCount: 0,
-		active:        true,
 	}
 	return game
-}
-
-/*
-	func (g *Game) levelReset() {
-		log.Printf("Resetting level")
-		mona.viewReset()
-		g.count = 0
-		g.questItem = false
-		g.treasureCount = 0
-	}
-*/
-func (c *Character) viewReset() {
-	log.Printf("Resetting viewer")
-	c.view.xCoord = 0
-	c.view.yCoord = winHeight - levelHeight
-}
-
-func NewViewer() *Viewer {
-	log.Printf("Creating new viewer")
-	viewer := &Viewer{
-		xCoord: 0,
-		yCoord: winHeight - levelHeight,
-		width:  winWidth,
-		height: winHeight,
-	}
-	return viewer
-}
-
-func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Character {
-	log.Printf("Creating new character %s", name)
-	character := &Character{
-		name:       name,
-		sprite:     sprite,
-		view:       view,
-		facing:     0,
-		xCoord:     20,
-		yCoord:     ground,
-		yVelo:      gravity,
-		active:     false,
-		hp_current: hp,
-		hp_total:   hp,
-		lives:      3,
-	}
-	return character
-}
-
-func NewBrick(name string, sprite *ebiten.Image) *Brick {
-	log.Printf("Creating new brick")
-	brick := &Brick{
-		name:         name,
-		sprite:       sprite,
-		impenetrable: true,
-		supportive:   true,
-		destructible: false,
-		damage:       0,
-	}
-	return brick
-}
-
-func NewHazard(name string, sprite *ebiten.Image, x int, y int, damage int) *Hazard {
-	log.Printf("Creating new hazard")
-	hazard := &Hazard{
-		name:   name,
-		sprite: sprite,
-		xCoord: x,
-		yCoord: y,
-		damage: damage,
-	}
-	return hazard
-}
-
-func NewCreature(name string, sprite *ebiten.Image, x int, y int, hp int, damage int, movement string) *Creature {
-	log.Printf("Creating new creature")
-	creature := &Creature{
-		name:       name,
-		sprite:     sprite,
-		facing:     50,
-		xCoord:     x,
-		yCoord:     y,
-		hp_current: hp,
-		hp_total:   hp,
-		seesChar:   false,
-		damage:     damage,
-		movement:   name,
-	}
-	return creature
-}
-
-func levelSetup(viewX int, viewY int) {
-	hazards(viewX, viewY)
-}
-
-func levelComplete() {
-	mona.fade()
-	end()
-}
-
-func (c *Character) fade() {
-	log.Printf("Fade character")
-}
-
-func end() {
-	log.Printf("End Screen")
-}
-
-func (g *Game) over() {
-	log.Printf("Game Over")
-	g.active = false
-}
-
-func (g *Game) retryLevel() {
-	log.Printf("Retry level")
-	// levelReset() -- needs fixing
-}
-
-func (c *Character) death() {
-	c.hp_current = 0
-	c.lives--
-	// initiate character death animation
 }
 
 func (g *Game) Update() error {
 	g.count++
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
-		g.mode = Level
+		g.mode = World
 	}
 	switch g.mode {
 	case Load:
@@ -403,21 +157,104 @@ func (g *Game) Update() error {
 			log.Printf("Changing mode to Menu")
 		}
 	case Menu:
+		log.Printf("Changing mode to World")
 		g.mode = World
 	case World:
-		g.mode = Level
-	case Level:
-		if mona.hp_current == 0 {
-			if mona.lives == 0 {
-				g.over()
-			}
-			g.retryLevel()
+		// set worldMona location and view screen: this should go in Menu->Start New Game
+		if worldMona.xCoord == 20 {
+			worldMona.xCoord = 200
+			worldMona.yCoord = 300
+			worldMona.view.xCoord = -400
+			worldMona.view.yCoord = -500
 		}
+		// radiusCheck is making sure worldMona stays within movement radius of planet
+		radiusCheck := math.Sqrt(math.Pow(float64(worldMona.xCoord-500-worldMona.view.xCoord), 2) + math.Pow(float64(worldMona.yCoord-500-worldMona.view.yCoord), 2))
+		// 4 directions of worldMona movement checks
+		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+			worldMona.facing = 0
+			switch {
+			case worldMona.view.xCoord == 0 && worldMona.xCoord < 290:
+				worldMona.xCoord += 5
+			case worldMona.view.xCoord == -400 && radiusCheck+50 < radius: // worldMona.xCoord < 500: // but actually, the arc of the circle
+				worldMona.xCoord += 5
+			case worldMona.view.xCoord > -400:
+				worldMona.view.xCoord -= 5
+			}
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+			worldMona.facing = 48
+			switch {
+			case worldMona.view.xCoord == -400 && worldMona.xCoord > 290:
+				worldMona.xCoord -= 5
+			case worldMona.view.xCoord == 0 && radiusCheck < radius: // worldMona.xCoord < 500: // but actually, the arc of the circle
+				worldMona.xCoord -= 5
+			case worldMona.view.xCoord < 0:
+				worldMona.view.xCoord += 5
+			}
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+			switch {
+			case worldMona.view.yCoord == -520 && worldMona.yCoord < 230:
+				worldMona.yCoord -= 5
+			case worldMona.view.yCoord == 0 && radiusCheck < radius:
+				worldMona.yCoord -= 5
+			case worldMona.view.yCoord < 0:
+				worldMona.view.yCoord += 5
+			}
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+			switch {
+			case worldMona.view.yCoord == 0 && worldMona.yCoord > 250:
+				worldMona.yCoord += 5
+			case worldMona.view.yCoord == -520 && radiusCheck+50 < radius:
+				worldMona.yCoord += 5
+			case worldMona.view.yCoord > -520:
+				worldMona.view.yCoord -= 5
+			}
+		}
+		// locations of levels on World, checking whether conditions are met to enter the level
+		for i, l := range levelData {
+			if ebiten.IsKeyPressed(ebiten.KeySpace) {
+				// diagnostics
+				log.Printf("Level %d", i)
+				log.Printf("Level Complete? %v", l.Complete)
+				log.Printf("World Mona X,Y: %d, %d", worldMona.xCoord, worldMona.yCoord)
+				log.Printf("View X, Y: %d, %d", worldMona.view.xCoord, worldMona.view.yCoord)
+				log.Printf("Level location: %d, %d", l.WorldX+worldMona.view.xCoord, l.WorldY+worldMona.view.yCoord)
+			}
+			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord ||
+				worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) &&
+				(worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord ||
+					worldMona.yCoord+48 > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < l.WorldY+150+worldMona.view.yCoord)) &&
+				ebiten.IsKeyPressed(ebiten.KeyEnter) &&
+				l.Complete == false {
+
+				levelWidth, levelHeight = l.background.Size()
+				mona.viewReset()
+				mona.xyReset(l.PlayerX, l.PlayerY)
+				mona.hpCurrent = mona.hpTotal
+				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
+				g.lvlCurrent = i
+				g.mode = Play
+			}
+		}
+	case Play:
+		// death check
+		if mona.hpCurrent == 0 {
+			if mona.lives == 0 {
+				//	g.over()
+				log.Printf("Player ran out of lives - Game Over")
+			}
+			//		g.retryLevel()
+			log.Printf("Player still has lives -- retry level or return to world?")
+		}
+		// sprite frames for different things -- handle differently later
 		portalFrame = (g.count / 5) % 5
 		treasureFrame = (g.count / 5) % 7
 		questItemFrame = (g.count / 5) % 5
 		hazardFrame = (g.count / 5) % 10
 		creatureFrame = (g.count / 5) % 5
+		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 			mona.facing = 0
 			currentFrame = (g.count / 5) % frameCount
@@ -438,7 +275,6 @@ func (g *Game) Update() error {
 			monaSide := (mona.xCoord - mona.view.xCoord + 48 + 1) / 50
 			monaTop := (mona.yCoord - mona.view.yCoord) / 50
 			if levelMap[0][monaTop*tileXCount+monaSide] == 1 /* || levelMap[0][monaBase*tileXCount+monaSide] == 1*/ {
-				//		log.Printf("There is a wall here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 				mona.xCoord -= 5
 			}
 		}
@@ -462,14 +298,15 @@ func (g *Game) Update() error {
 			monaSide := (mona.xCoord - mona.view.xCoord) / 50
 			monaTop := (mona.yCoord - mona.view.yCoord) / 50
 			if levelMap[0][monaTop*tileXCount+monaSide] == 1 {
-				//		log.Printf("Oh a different wall")
 				mona.xCoord += 5
 			}
 		}
+		// player sprite frame reset
 		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
 			currentFrame = defaultFrame
 		}
 
+		// diagnostic: print map to log
 		if inpututil.IsKeyJustPressed(ebiten.KeyD) {
 			// diagnostics to log!
 			diagnosticMap := ""
@@ -479,9 +316,9 @@ func (g *Game) Update() error {
 			}
 			log.Printf(diagnosticMap)
 		}
+		// jump logic
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
 			mona.yVelo = -19
-			//		log.Printf("JUMP! velo = %v\nyCoord = %v, yVelo = %v", mona.yVelo, mona.yCoord, mona.yVelo)
 		}
 		if mona.yVelo < gravity {
 			// screen movement vs player movement
@@ -514,7 +351,6 @@ func (g *Game) Update() error {
 				monaLeft := (mona.xCoord - mona.view.xCoord) / 50
 				monaRight := (mona.xCoord - mona.view.xCoord + 48) / 50
 				if levelMap[0][(monaBase)*tileXCount+monaLeft] == 1 || levelMap[0][(monaBase)*tileXCount+monaRight] == 1 {
-					//			log.Printf("THERE IS A TILE THERE WHILE I AM FALLING")
 					mona.yCoord = (monaBase * 50) - 50 + mona.view.yCoord
 					mona.yVelo = gravity
 				}
@@ -541,10 +377,14 @@ func (g *Game) Update() error {
 		bbrVal := levelMap[1][blockBaseRight]
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 			mona.death()
+			clearLevel()
 			if mona.lives == 0 {
-				g.over()
+				log.Printf("Game over, no lives left")
+				//g.over()
 			}
-			g.retryLevel()
+			log.Printf("Retry Level or return to world map?")
+			g.mode = World
+			//g.retryLevel()
 
 		}
 		if btlVal == 3 || btlVal == 4 {
@@ -588,8 +428,16 @@ func (g *Game) Update() error {
 			blank.Clear()
 		}
 
-		if btlVal == 2 && bblVal == 2 || btrVal == 2 && bbrVal == 2 {
-			levelComplete()
+		if (mona.xCoord > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord || mona.xCoord+48 > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord+48 < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord) && (mona.yCoord > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord || mona.yCoord+48 > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord+48 < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord) {
+			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
+			levelData[g.lvlCurrent].Complete = true
+			g.lvlCurrent = -1
+			g.questItem = false
+			clearLevel()
+			log.Print("Just hit the portal")
+			//levelComplete()
+			log.Printf("Level complete")
+			g.mode = World
 		}
 
 		// creature movements
@@ -637,13 +485,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
 		screen.DrawImage(ebitengineSplash, op)
-	case Level:
+	case World:
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(worldMona.view.xCoord), float64(worldMona.view.yCoord))
+		screen.DrawImage(world, op)
+		for _, l := range levelData {
+			lop := &ebiten.DrawImageOptions{}
+			lop.GeoM.Translate(float64(l.WorldX), float64(l.WorldY))
+			world.DrawImage(l.icon, lop)
+		}
+		op = &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(worldMona.xCoord), float64(worldMona.yCoord))
+		screen.DrawImage(worldMona.sprite.SubImage(image.Rect(0, 0, 50, 50)).(*ebiten.Image), op)
+	case Play:
 		lvlOp := &ebiten.DrawImageOptions{}
 		lvlOp.GeoM.Translate(float64(mona.view.xCoord), float64(mona.view.yCoord))
 		screen.DrawImage(g.background, lvlOp)
 		screen.DrawImage(blank, lvlOp)
-		//	boh := &ebiten.DrawImageOptions{}
-		//	screen.DrawImage(screenSize, boh)
 		mOp := &ebiten.DrawImageOptions{}
 		mOp.GeoM.Translate(float64(mona.xCoord), float64(mona.yCoord))
 		cx, cy := currentFrame*frameWidth, mona.facing
@@ -652,10 +510,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for _, l := range levelMap {
 			for i, t := range l {
 				switch {
-				//			case t == 0:
-				//				emptyGridSpot += 1
-				//				top := &ebiten.DrawImageOptions{}
-				//				g.background.DrawImage(blank, top)
 				case t == 1:
 					top := &ebiten.DrawImageOptions{}
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64((i/tileXCount)*tileSize))
@@ -672,7 +526,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
 					qx := questItemFrame * 50
 					blank.DrawImage(questItem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
-					log.Printf("quest loc - x: %v, y: %v", float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
+					//		log.Printf("quest loc - x: %v, y: %v", float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
 				case t == 4:
 					top := &ebiten.DrawImageOptions{}
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize+5), float64(i/tileXCount*tileSize+5))
@@ -681,20 +535,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 			}
 		}
-		/*
-			for _, l := range levelMap {
-				for i, t := range l {
-					if t == 5 {
-						top := &ebiten.DrawImageOptions{}
-						top.GeoM.Translate(float64((i%tileXCount)*tileSize-g.view.xCoord), float64((i/tileXCount)*tileSize+g.view.yCoord))
-						//top.GeoM.Translate(float64(g.view.xCoord-((i%tileXCount)*tileSize)), float64(g.view.yCoord-(i/tileXCount*tileSize)+50))
-						log.Printf("hazard loc - x: %v, y: %v", float64(((i%tileXCount)*tileSize)-g.view.xCoord), float64((i/tileXCount*tileSize)+g.view.yCoord))
-						hx := hazardFrame * 50
-						screen.DrawImage(hazard.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), top)
-					}
-				}
-			}
-		*/
 		hmsg := "Hazards\n"
 		for _, h := range hazardList {
 			hop := &ebiten.DrawImageOptions{}
@@ -712,16 +552,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			cmsg += fmt.Sprintf("- x: %v, y: %v, facing: %v\n", c.xCoord, c.yCoord, c.facing)
 		}
 
-		if g.active == false {
+		if mona.lives <= 0 {
 			overOp := &ebiten.DrawImageOptions{}
 			screen.DrawImage(gameOverMessage, overOp)
 		}
-		/*
-			noOp := &ebiten.DrawImageOptions{}
-			noOp.GeoM.Translate(float64(250), float64(380))
-			hx := hazardFrame * 50
-			screen.DrawImage(hazard.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), noOp)
-		*/
 		// upper left - quest item acquired
 		// upper right - treasure count
 
@@ -737,8 +571,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//	msg += fmt.Sprintf("Mona yCoord: %d\n", mona.yCoord)
 	//	msg += fmt.Sprintf("Viewer xCoord: %d\n", g.view.xCoord)
 	//	msg += fmt.Sprintf("Viewer yCoord: %d\n", g.view.yCoord)
-	msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
-	msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
+	//msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
+	//msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
+
+	msg += fmt.Sprintf("Levels Completed: %v\n", g.lvlComplete)
+	msg += fmt.Sprintf("Current Level: %v\n", g.lvlCurrent)
 	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
 
 	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
