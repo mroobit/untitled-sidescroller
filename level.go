@@ -58,7 +58,6 @@ func clearLevel() { // clear out all hazards, creatures from drawing lists
 func levelSetup(level *LevelData, viewX int, viewY int) {
 	levelMap = append(levelMap, level.Layout...)
 	populate(level, viewX, viewY)
-	mona.xyReset(level.PlayerX, level.PlayerY)
 }
 
 /*

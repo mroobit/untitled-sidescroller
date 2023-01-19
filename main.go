@@ -80,10 +80,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 	loadAssets()
 
-	// these values are temporarily hard-coded, replace magic numbers later
-	levelWidth = 800
-	levelHeight = 600
-
 	monaView = NewViewer()
 	worldMonaView = NewViewer()
 
@@ -164,13 +160,16 @@ func (g *Game) Update() error {
 		log.Printf("Changing mode to World")
 		g.mode = World
 	case World:
+		// set worldMona location and view screen: this should go in Menu->Start New Game
 		if worldMona.xCoord == 20 {
 			worldMona.xCoord = 200
 			worldMona.yCoord = 300
 			worldMona.view.xCoord = -400
 			worldMona.view.yCoord = -500
 		}
+		// radiusCheck is making sure worldMona stays within movement radius of planet
 		radiusCheck := math.Sqrt(math.Pow(float64(worldMona.xCoord-500-worldMona.view.xCoord), 2) + math.Pow(float64(worldMona.yCoord-500-worldMona.view.yCoord), 2))
+		// 4 directions of worldMona movement checks
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 			worldMona.facing = 0
 			switch {
@@ -213,9 +212,7 @@ func (g *Game) Update() error {
 				worldMona.view.yCoord -= 5
 			}
 		}
-		//		if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		//			g.mode = Play
-		//		}
+		// locations of levels on World, checking whether conditions are met to enter the level
 		for i, l := range levelData {
 			if ebiten.IsKeyPressed(ebiten.KeySpace) {
 				// diagnostics
@@ -225,9 +222,16 @@ func (g *Game) Update() error {
 				log.Printf("View X, Y: %d, %d", worldMona.view.xCoord, worldMona.view.yCoord)
 				log.Printf("Level location: %d, %d", l.WorldX+worldMona.view.xCoord, l.WorldY+worldMona.view.yCoord)
 			}
-			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord || worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) && (worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord || worldMona.yCoord+48 > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < l.WorldY+150+worldMona.view.yCoord)) && ebiten.IsKeyPressed(ebiten.KeyEnter) && l.Complete == false {
-				//mona.xyReset()
+			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord ||
+				worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) &&
+				(worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord ||
+					worldMona.yCoord+48 > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < l.WorldY+150+worldMona.view.yCoord)) &&
+				ebiten.IsKeyPressed(ebiten.KeyEnter) &&
+				l.Complete == false {
+
+				levelWidth, levelHeight = l.background.Size()
 				mona.viewReset()
+				mona.xyReset(l.PlayerX, l.PlayerY)
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
 				g.lvlCurrent = i
@@ -235,6 +239,7 @@ func (g *Game) Update() error {
 			}
 		}
 	case Play:
+		// death check
 		if mona.hpCurrent == 0 {
 			if mona.lives == 0 {
 				//	g.over()
@@ -243,11 +248,13 @@ func (g *Game) Update() error {
 			//		g.retryLevel()
 			log.Printf("Player still has lives -- retry level or return to world?")
 		}
+		// sprite frames for different things -- handle differently later
 		portalFrame = (g.count / 5) % 5
 		treasureFrame = (g.count / 5) % 7
 		questItemFrame = (g.count / 5) % 5
 		hazardFrame = (g.count / 5) % 10
 		creatureFrame = (g.count / 5) % 5
+		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 			mona.facing = 0
 			currentFrame = (g.count / 5) % frameCount
@@ -294,10 +301,12 @@ func (g *Game) Update() error {
 				mona.xCoord += 5
 			}
 		}
+		// player sprite frame reset
 		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
 			currentFrame = defaultFrame
 		}
 
+		// diagnostic: print map to log
 		if inpututil.IsKeyJustPressed(ebiten.KeyD) {
 			// diagnostics to log!
 			diagnosticMap := ""
@@ -307,6 +316,7 @@ func (g *Game) Update() error {
 			}
 			log.Printf(diagnosticMap)
 		}
+		// jump logic
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
 			mona.yVelo = -19
 		}

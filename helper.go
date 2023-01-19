@@ -12,8 +12,8 @@ import (
 
 func loadAssets() {
 	world = loadImage(FileSystem, "imgs/world--test.png")
-	gooAlley = loadImage(FileSystem, "imgs/level-1--test.png")
-	yikesfulMountain = loadImage(FileSystem, "imgs/level-2--test.png")
+	gooAlley = loadImage(FileSystem, "imgs/goo-alley--test.png")
+	yikesfulMountain = loadImage(FileSystem, "imgs/yikesful-mountain--test.png")
 	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
 
 	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")

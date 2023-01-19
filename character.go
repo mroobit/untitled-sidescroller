@@ -53,7 +53,7 @@ func NewViewer() *Viewer {
 	log.Printf("Creating new viewer")
 	viewer := &Viewer{
 		xCoord: 0,
-		yCoord: winHeight - levelHeight,
+		yCoord: winHeight,
 		width:  winWidth,
 		height: winHeight,
 	}
