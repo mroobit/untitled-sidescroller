@@ -7,6 +7,7 @@ Currently there is a rough semi-playable level (that cannot be won, but which ca
 - [x] Modes for Load, Main Menu, World Map, and Playable Level
 - [x] Main Menu
 - [ ] Save Files
+
 **Playable Level**
 - [x] Player Movement (L/R, Jump)
 - [ ] Collision Logic (rough)
@@ -32,12 +33,14 @@ Currently there is a rough semi-playable level (that cannot be won, but which ca
 - [ ] Treasure Collected Display (either always on screen, or available on [space])
 - [ ] Fix Gravity (currently player character floats once jump velocity is resolved)
 - [ ] Option to Exit Level without completing
+
 **World Map**
 - [x] Background planet, city placeholders
 - [x] Basic movement
 - [ ] Simple Menu
     - [x] Enter level from map (by walking character on top of it and pressing a key)
     - [ ] Exit to Main Menu
+
 **Main Menu**
 - [x] Start New Game
 - [ ] Load Game
