@@ -8,7 +8,32 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/tinne26/etxt"
 )
+
+var fontLib *etxt.FontLibrary
+
+func init() {
+
+	log.Printf("Creating new font library")
+	fontLib = etxt.NewFontLibrary()
+
+	_, _, err := fontLib.ParseEmbedDirFonts("fonts", FileSystem)
+	if err != nil {
+		log.Fatalf("Error while loading fonts: %s", err.Error())
+	}
+}
+
+func newRenderer() *etxt.Renderer {
+	log.Printf("Creating new text renderer")
+	renderer := etxt.NewStdRenderer()
+	glyphsCache := etxt.NewDefaultCache(10 * 1024 * 1024) // 10MB
+	renderer.SetCacheHandler(glyphsCache.NewHandler())
+	renderer.SetFont(fontLib.GetFont("Economica Bold"))
+	renderer.SetAlign(etxt.YCenter, etxt.XCenter)
+	renderer.SetSizePx(32)
+	return renderer
+}
 
 func loadAssets() {
 	world = loadImage(FileSystem, "imgs/world--test.png")

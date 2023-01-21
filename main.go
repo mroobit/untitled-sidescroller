@@ -3,17 +3,21 @@ package main
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/tinne26/etxt"
 )
 
 const (
@@ -34,6 +38,8 @@ const (
 )
 
 var (
+	ErrExit = errors.New("Exiting Game")
+
 	//go:embed imgs
 	//go:embed fonts
 	FileSystem embed.FS
@@ -104,15 +110,20 @@ func main() {
 
 	g := NewGame()
 	if err := ebiten.RunGame(g); err != nil {
+		if err == ErrExit {
+			os.Exit(0)
+		}
 		log.Fatal(err)
 	}
 }
 
 // Game contains all relevant data for game
 type Game struct {
-	mode       Mode
-	background *ebiten.Image
-	count      int
+	mode        Mode
+	mainMenu    *Menu
+	txtRenderer *etxt.Renderer
+	background  *ebiten.Image
+	count       int
 	// currently have 2 ways to track completion: in *LevelData and in *Game
 	//lvlComplete   []string // list of names of levels that have been completed
 	//lvlCurrent    string
@@ -129,7 +140,7 @@ type Mode int
 
 const (
 	Load Mode = iota
-	Menu
+	Title
 	World
 	Play
 )
@@ -142,6 +153,8 @@ func NewGame() *Game {
 		questItem:     false,
 		treasureCount: 0,
 	}
+	game.mainMenu = NewMenu(menuItems)
+	game.txtRenderer = newRenderer()
 	return game
 }
 
@@ -153,12 +166,23 @@ func (g *Game) Update() error {
 	switch g.mode {
 	case Load:
 		if g.count > 200 {
-			g.mode = Menu
-			log.Printf("Changing mode to Menu")
+			g.mode = Title
+			log.Printf("Changing mode to Title")
 		}
-	case Menu:
-		log.Printf("Changing mode to World")
-		g.mode = World
+	case Title:
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			selection, err := g.mainMenu.Select()
+			if err != nil {
+				return err
+			}
+			g.mode = selection
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+			g.mainMenu.Next()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
+			g.mainMenu.Prev()
+		}
 	case World:
 		// set worldMona location and view screen: this should go in Menu->Start New Game
 		if worldMona.xCoord == 20 {
@@ -166,6 +190,10 @@ func (g *Game) Update() error {
 			worldMona.yCoord = 300
 			worldMona.view.xCoord = -400
 			worldMona.view.yCoord = -500
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+			log.Printf("Exiting Game")
+			return ErrExit
 		}
 		// radiusCheck is making sure worldMona stays within movement radius of planet
 		radiusCheck := math.Sqrt(math.Pow(float64(worldMona.xCoord-500-worldMona.view.xCoord), 2) + math.Pow(float64(worldMona.yCoord-500-worldMona.view.yCoord), 2))
@@ -485,6 +513,28 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
 		screen.DrawImage(ebitengineSplash, op)
+	case Title:
+		/******************************************************************/
+		// these colors should be defined elsewhere....
+		colorActive := color.RGBA{100, 50, 50, 255}
+		colorInactive := color.RGBA{0xff, 0xff, 0xff, 255}
+		textColor := colorActive
+
+		var menuHead = g.mainMenu.head
+		var locY = 100
+		for i := g.mainMenu.length; i > 0; i-- {
+			textColor = colorInactive
+			if menuHead == g.mainMenu.active {
+				textColor = colorActive
+			}
+			g.txtRenderer.SetTarget(screen)
+			g.txtRenderer.SetColor(textColor)
+			g.txtRenderer.Draw(menuHead.option, 300, locY)
+			locY += 50
+			menuHead = menuHead.next
+		}
+		/******************************************************************/
+
 	case World:
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(worldMona.view.xCoord), float64(worldMona.view.yCoord))
