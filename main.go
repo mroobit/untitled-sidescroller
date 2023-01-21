@@ -456,7 +456,11 @@ func (g *Game) Update() error {
 			blank.Clear()
 		}
 
-		if (mona.xCoord > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord || mona.xCoord+48 > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord+48 < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord) && (mona.yCoord > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord || mona.yCoord+48 > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord+48 < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord) {
+		if g.questItem &&
+			(mona.xCoord > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord ||
+				mona.xCoord+48 > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord+48 < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord) &&
+			(mona.yCoord > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord ||
+				mona.yCoord+48 > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord+48 < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord) {
 			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
 			levelData[g.lvlCurrent].Complete = true
 			g.lvlCurrent = -1
@@ -516,7 +520,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case Title:
 		/******************************************************************/
 		// these colors should be defined elsewhere....
-		colorActive := color.RGBA{100, 50, 50, 255}
+		colorActive := color.RGBA{140, 50, 90, 255}
 		colorInactive := color.RGBA{0xff, 0xff, 0xff, 255}
 		textColor := colorActive
 
