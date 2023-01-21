@@ -5,7 +5,7 @@ Currently there is a rough semi-playable level (that cannot be won, but which ca
 
 ## Minimum Demo
 - [x] Modes for Load, Main Menu, World Map, and Playable Level
-- [ ] Main Menu
+- [x] Main Menu
 - [ ] Save Files
 **Playable Level**
 - [x] Player Movement (L/R, Jump)
@@ -39,11 +39,11 @@ Currently there is a rough semi-playable level (that cannot be won, but which ca
     - [x] Enter level from map (by walking character on top of it and pressing a key)
     - [ ] Exit to Main Menu
 **Main Menu**
-- [ ] Start New Game
+- [x] Start New Game
 - [ ] Load Game
 - [ ] Settings
 - [ ] Acknowledgements/Credits
-- [ ] Exit
+- [x] Exit
 
 ## Expanding the Game
 Once a basic structure is in place, I can think about the following:
