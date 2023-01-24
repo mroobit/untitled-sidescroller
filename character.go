@@ -78,9 +78,6 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 	return character
 }
 
-func (c *Character) fade() {
-	log.Printf("Fade character")
-}
 func (c *Character) death() {
 	c.hpCurrent = 0
 	c.lives--
