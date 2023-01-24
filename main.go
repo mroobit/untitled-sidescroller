@@ -4,7 +4,6 @@ package main
 import (
 	"embed"
 	"errors"
-	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -15,7 +14,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/tinne26/etxt"
 )
@@ -45,6 +43,7 @@ var (
 	FileSystem embed.FS
 
 	ebitengineSplash *ebiten.Image
+	gemCt            *ebiten.Image
 	world            *ebiten.Image
 	gooAlley         *ebiten.Image
 	yikesfulMountain *ebiten.Image
@@ -192,6 +191,8 @@ func (g *Game) Update() error {
 			worldMona.view.yCoord = -500
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+			// later, ask confirmation if game not saved since entering World
+			// Options: Save, Quit without Saving
 			log.Printf("Exiting Game")
 			return ErrExit
 		}
@@ -512,7 +513,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	cmsg := "Creatures\n"
+	//cmsg := "Creatures\n"
 	switch g.mode {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
@@ -589,13 +590,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 			}
 		}
-		hmsg := "Hazards\n"
+		//		hmsg := "Hazards\n"
 		for _, h := range hazardList {
 			hop := &ebiten.DrawImageOptions{}
 			hop.GeoM.Translate(float64(h.xCoord), float64(h.yCoord))
 			hx := hazardFrame * 50
 			screen.DrawImage(h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), hop)
-			hmsg += fmt.Sprintf("x: %v, y: %v\n", h.xCoord, h.yCoord)
+			//			hmsg += fmt.Sprintf("x: %v, y: %v\n", h.xCoord, h.yCoord)
 		}
 
 		for _, c := range creatureList {
@@ -603,8 +604,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			op.GeoM.Translate(float64(c.xCoord), float64(c.yCoord))
 			cx, cy := creatureFrame*50, c.facing
 			screen.DrawImage(c.sprite.SubImage(image.Rect(cx, cy, cx+50, cy+50)).(*ebiten.Image), op)
-			cmsg += fmt.Sprintf("- x: %v, y: %v, facing: %v\n", c.xCoord, c.yCoord, c.facing)
+			//			cmsg += fmt.Sprintf("- x: %v, y: %v, facing: %v\n", c.xCoord, c.yCoord, c.facing)
 		}
+
+		gx := 0
+		if g.questItem == true {
+			gx = 35
+		}
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(10.0, 10.0)
+		screen.DrawImage(gemCt.SubImage(image.Rect(gx, 0, gx+35, 35)).(*ebiten.Image), op)
+
+		livesCt := "Lives: " + strconv.Itoa(mona.lives)
+		pointsCt := "Score: " + strconv.Itoa(g.treasureCount)
+		g.txtRenderer.SetTarget(screen)
+		g.txtRenderer.SetColor(color.RGBA{0, 0, 0, 255})
+		g.txtRenderer.Draw(pointsCt, 530, 30)
+		g.txtRenderer.Draw(livesCt, 290, 30)
 
 		if mona.lives <= 0 {
 			overOp := &ebiten.DrawImageOptions{}
@@ -616,8 +632,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		//	scoreTreasure := "Treasure: " + strconv.Itoa(g.treasureCount)
 		//	text.Draw(screen, scoreTreasure, mplusNormalFont, 300, 140, color.White)
 	}
-	msg := ""
-	msg += cmsg
+	//	msg := ""
+	//	msg += cmsg
 	//msg += hmsg
 	//	msg += fmt.Sprintf("Is screen cleared every frame? %v\n", ebiten.IsScreenClearedEveryFrame())
 	//	msg += fmt.Sprintf("Empty Grid Spots: %d\n", emptyGridSpot)
@@ -628,12 +644,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
 	//msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
 
-	msg += fmt.Sprintf("Levels Completed: %v\n", g.lvlComplete)
-	msg += fmt.Sprintf("Current Level: %v\n", g.lvlCurrent)
-	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
+	//	msg += fmt.Sprintf("Levels Completed: %v\n", g.lvlComplete)
+	//	msg += fmt.Sprintf("Current Level: %v\n", g.lvlCurrent)
+	//	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
 
 	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
-	ebitenutil.DebugPrint(screen, msg)
+	//	ebitenutil.DebugPrint(screen, msg)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

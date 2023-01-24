@@ -45,6 +45,8 @@ func loadAssets() {
 
 	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
 
+	gemCt = loadImage(FileSystem, "imgs/gem-count-large.png")
+
 	brick = loadImage(FileSystem, "imgs/brick--test.png")
 	portal = loadImage(FileSystem, "imgs/portal-b--test.png")
 	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
