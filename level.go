@@ -56,8 +56,16 @@ func clearLevel() { // clear out all hazards, creatures from drawing lists
 }
 
 func levelSetup(level *LevelData, viewX int, viewY int) {
-	levelMap = append(levelMap, level.Layout...)
+	levelMap = layoutCopy(level.Layout)
 	populate(level, viewX, viewY)
+}
+
+func layoutCopy(layout [][]int) (fresh [][]int) {
+	fresh = make([][]int, len(layout))
+	for i := range layout {
+		fresh[i] = append([]int{}, layout[i]...)
+	}
+	return
 }
 
 /*
