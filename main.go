@@ -125,9 +125,8 @@ type Game struct {
 	count         int
 	lvlComplete   []int // list of names of levels that have been completed
 	lvl           *LevelData
-	items         []string // change type, but to track which items have been collected
-	questItem     bool     // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
-	treasureCount int      // to deprecate -- use score instead: add up different types of treasure, different values
+	questItem     bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
+	treasureCount int  // to deprecate -- use score instead: add up different types of treasure, different values
 	score         int
 }
 
@@ -506,7 +505,6 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	//cmsg := "Creatures\n"
 	switch g.mode {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
@@ -554,7 +552,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		mOp.GeoM.Translate(float64(mona.xCoord), float64(mona.yCoord))
 		cx, cy := currentFrame*frameWidth, mona.facing
 		screen.DrawImage(mona.sprite.SubImage(image.Rect(cx, cy, cx+frameWidth, cy+frameHeight)).(*ebiten.Image), mOp)
-		//	emptyGridSpot := 0
 		for _, l := range levelMap {
 			for i, t := range l {
 				switch {
@@ -574,7 +571,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
 					qx := questItemFrame * 50
 					blank.DrawImage(questItem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
-					//		log.Printf("quest loc - x: %v, y: %v", float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
 				case t == 4:
 					top := &ebiten.DrawImageOptions{}
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize+5), float64(i/tileXCount*tileSize+5))
@@ -583,13 +579,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 			}
 		}
-		//		hmsg := "Hazards\n"
 		for _, h := range hazardList {
 			hop := &ebiten.DrawImageOptions{}
 			hop.GeoM.Translate(float64(h.xCoord), float64(h.yCoord))
 			hx := hazardFrame * 50
 			screen.DrawImage(h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), hop)
-			//			hmsg += fmt.Sprintf("x: %v, y: %v\n", h.xCoord, h.yCoord)
 		}
 
 		for _, c := range creatureList {
@@ -597,7 +591,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			op.GeoM.Translate(float64(c.xCoord), float64(c.yCoord))
 			cx, cy := creatureFrame*50, c.facing
 			screen.DrawImage(c.sprite.SubImage(image.Rect(cx, cy, cx+50, cy+50)).(*ebiten.Image), op)
-			//			cmsg += fmt.Sprintf("- x: %v, y: %v, facing: %v\n", c.xCoord, c.yCoord, c.facing)
 		}
 
 		gx := 0
@@ -619,27 +612,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			overOp := &ebiten.DrawImageOptions{}
 			screen.DrawImage(gameOverMessage, overOp)
 		}
-		// upper left - quest item acquired
-		// upper right - treasure count
 
-		//	scoreTreasure := "Treasure: " + strconv.Itoa(g.treasureCount)
-		//	text.Draw(screen, scoreTreasure, mplusNormalFont, 300, 140, color.White)
 	}
 	//	msg := ""
-	//	msg += cmsg
-	//msg += hmsg
-	//	msg += fmt.Sprintf("Is screen cleared every frame? %v\n", ebiten.IsScreenClearedEveryFrame())
-	//	msg += fmt.Sprintf("Empty Grid Spots: %d\n", emptyGridSpot)
-	//	msg += fmt.Sprintf("Mona xCoord: %d\n", mona.xCoord)
-	//	msg += fmt.Sprintf("Mona yCoord: %d\n", mona.yCoord)
-	//	msg += fmt.Sprintf("Viewer xCoord: %d\n", g.view.xCoord)
-	//	msg += fmt.Sprintf("Viewer yCoord: %d\n", g.view.yCoord)
-	//msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
-	//msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
-
-	//	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
-
-	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
 	//	ebitenutil.DebugPrint(screen, msg)
 }
 
