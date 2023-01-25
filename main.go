@@ -119,15 +119,13 @@ func main() {
 
 // Game contains all relevant data for game
 type Game struct {
-	mode          Mode
-	mainMenu      *Menu
-	txtRenderer   *etxt.Renderer
-	count         int
-	lvlComplete   []int // list of names of levels that have been completed
-	lvl           *LevelData
-	questItem     bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
-	treasureCount int  // to deprecate -- use score instead: add up different types of treasure, different values
-	score         int
+	mode        Mode
+	mainMenu    *Menu
+	txtRenderer *etxt.Renderer
+	count       int
+	lvl         *LevelData
+	questItem   bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
+	score       int
 }
 
 type Mode int
@@ -141,11 +139,7 @@ const (
 
 func NewGame() *Game {
 	log.Printf("Creating new game")
-	game := &Game{
-		count:         0,
-		questItem:     false,
-		treasureCount: 0,
-	}
+	game := &Game{}
 	game.mainMenu = NewMenu(menuItems)
 	game.txtRenderer = newRenderer()
 	return game
@@ -258,6 +252,7 @@ func (g *Game) Update() error {
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
 				g.lvl = l
+				g.questItem = false
 				g.mode = Play
 			}
 		}
@@ -415,7 +410,7 @@ func (g *Game) Update() error {
 			case btlVal == 3:
 				g.questItem = true
 			case btlVal == 4:
-				g.treasureCount += 1
+				g.score += 10
 			}
 			levelMap[1][blockTopLeft] = 0
 			blank.Clear()
@@ -425,7 +420,7 @@ func (g *Game) Update() error {
 			case btrVal == 3:
 				g.questItem = true
 			case btrVal == 4:
-				g.treasureCount += 1
+				g.score += 10
 			}
 			levelMap[1][blockTopRight] = 0
 			blank.Clear()
@@ -435,7 +430,7 @@ func (g *Game) Update() error {
 			case bblVal == 3:
 				g.questItem = true
 			case bblVal == 4:
-				g.treasureCount += 1
+				g.score += 10
 			}
 			levelMap[1][blockBaseLeft] = 0
 			blank.Clear()
@@ -445,7 +440,7 @@ func (g *Game) Update() error {
 			case bbrVal == 3:
 				g.questItem = true
 			case bbrVal == 4:
-				g.treasureCount += 1
+				g.score += 10
 			}
 			levelMap[1][blockBaseRight] = 0
 			blank.Clear()
@@ -543,6 +538,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op = &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(worldMona.xCoord), float64(worldMona.yCoord))
 		screen.DrawImage(worldMona.sprite.SubImage(image.Rect(0, 0, 50, 50)).(*ebiten.Image), op)
+
+		if mona.lives <= 0 {
+			overOp := &ebiten.DrawImageOptions{}
+			screen.DrawImage(gameOverMessage, overOp)
+		}
 	case Play:
 		lvlOp := &ebiten.DrawImageOptions{}
 		lvlOp.GeoM.Translate(float64(mona.view.xCoord), float64(mona.view.yCoord))
@@ -602,16 +602,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(gemCt.SubImage(image.Rect(gx, 0, gx+35, 35)).(*ebiten.Image), op)
 
 		livesCt := "Lives: " + strconv.Itoa(mona.lives)
-		pointsCt := "Score: " + strconv.Itoa(g.treasureCount)
+		pointsCt := "Score: " + strconv.Itoa(g.score)
 		g.txtRenderer.SetTarget(screen)
 		g.txtRenderer.SetColor(color.RGBA{0, 0, 0, 255})
 		g.txtRenderer.Draw(pointsCt, 530, 30)
 		g.txtRenderer.Draw(livesCt, 290, 30)
-
-		if mona.lives <= 0 {
-			overOp := &ebiten.DrawImageOptions{}
-			screen.DrawImage(gameOverMessage, overOp)
-		}
 
 	}
 	//	msg := ""
