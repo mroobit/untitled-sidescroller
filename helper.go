@@ -29,7 +29,7 @@ func newRenderer() *etxt.Renderer {
 	renderer := etxt.NewStdRenderer()
 	glyphsCache := etxt.NewDefaultCache(10 * 1024 * 1024) // 10MB
 	renderer.SetCacheHandler(glyphsCache.NewHandler())
-	renderer.SetFont(fontLib.GetFont("Economica Bold"))
+	renderer.SetFont(fontLib.GetFont("Consola Mono Bold"))
 	renderer.SetAlign(etxt.YCenter, etxt.XCenter)
 	renderer.SetSizePx(32)
 	return renderer
@@ -47,6 +47,9 @@ func loadAssets() {
 	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
 
 	gemCt = loadImage(FileSystem, "imgs/gem-count-large.png")
+	livesCt = loadImage(FileSystem, "imgs/lives-left.png")
+	messageBox = loadImage(FileSystem, "imgs/message-box.png")
+	statsBox = loadImage(FileSystem, "imgs/stats-box.png")
 
 	brick = loadImage(FileSystem, "imgs/brick--test.png")
 	portal = loadImage(FileSystem, "imgs/portal-b--test.png")

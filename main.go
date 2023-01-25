@@ -44,6 +44,9 @@ var (
 
 	ebitengineSplash           *ebiten.Image
 	gemCt                      *ebiten.Image
+	livesCt                    *ebiten.Image
+	messageBox                 *ebiten.Image
+	statsBox                   *ebiten.Image
 	world                      *ebiten.Image
 	gooAlley                   *ebiten.Image
 	yikesfulMountain           *ebiten.Image
@@ -136,6 +139,7 @@ const (
 	Title
 	World
 	Play
+	Pause
 )
 
 func NewGame() *Game {
@@ -498,6 +502,13 @@ func (g *Game) Update() error {
 				c.facing = rand.Intn(2) * 50
 			}
 		}
+		if ebiten.IsKeyPressed(ebiten.KeyQ) {
+			g.mode = Pause
+		}
+	case Pause:
+		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+			g.mode = Play
+		}
 	}
 	return nil
 }
@@ -546,7 +557,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			overOp := &ebiten.DrawImageOptions{}
 			screen.DrawImage(gameOverMessage, overOp)
 		}
-	case Play:
+	case Play, Pause:
 		lvlOp := &ebiten.DrawImageOptions{}
 		lvlOp.GeoM.Translate(float64(mona.view.xCoord), float64(mona.view.yCoord))
 		screen.DrawImage(g.lvl.background, lvlOp)
@@ -600,16 +611,26 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		if g.questItem == true {
 			gx = 35
 		}
+
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(10.0, 10.0)
+		screen.DrawImage(statsBox, op)
+
+		op = &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(125.0, 64.0)
 		screen.DrawImage(gemCt.SubImage(image.Rect(gx, 0, gx+35, 35)).(*ebiten.Image), op)
 
-		livesCt := "Lives: " + strconv.Itoa(mona.lives)
-		pointsCt := "Score: " + strconv.Itoa(g.score)
+		for lx := 0; lx < mona.lives; lx++ {
+			op = &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(21.0+float64(lx*20), 64.0)
+			screen.DrawImage(livesCt, op)
+		}
+
+		pointsCt := strconv.Itoa(g.score)
 		g.txtRenderer.SetTarget(screen)
 		g.txtRenderer.SetColor(color.RGBA{0, 0, 0, 255})
-		g.txtRenderer.Draw(pointsCt, 530, 30)
-		g.txtRenderer.Draw(livesCt, 290, 30)
+		g.txtRenderer.SetAlign(etxt.Top, etxt.Right)
+		g.txtRenderer.Draw(pointsCt, 160, 16)
 
 	}
 	//	msg := ""
