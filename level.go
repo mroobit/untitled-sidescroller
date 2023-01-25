@@ -4,19 +4,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Level struct {
-	name       string
-	complete   bool
-	icon       *ebiten.Image
-	mapX       int
-	mapY       int
-	exitX      int
-	exitY      int
-	message    []string      // on entering level, on death, on successful completion
-	background *ebiten.Image // later, this can be []*ebiten.Image, for layered background
-	layout     [][]int
-}
-
 type LevelData struct {
 	Name     string
 	Complete bool
@@ -67,33 +54,3 @@ func layoutCopy(layout [][]int) (fresh [][]int) {
 	}
 	return
 }
-
-/*
-	func (g *Game) levelReset() {
-		log.Printf("Resetting level")
-		mona.viewReset()
-		g.count = 0
-		g.questItem = false
-		g.treasureCount = 0
-	}
-*/
-
-/*
-	func levelComplete() {
-		mona.fade()
-		end()
-	}
-
-	func end() {
-		log.Printf("End Screen")
-	}
-
-	func (g *Game) over() {
-		log.Printf("Game Over")
-	}
-
-	func (g *Game) retryLevel() {
-		log.Printf("Retry level")
-		// levelReset() -- needs fixing
-	}
-*/
