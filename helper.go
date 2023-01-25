@@ -40,6 +40,7 @@ func loadAssets() {
 	gooAlley = loadImage(FileSystem, "imgs/goo-alley--test.png")
 	yikesfulMountain = loadImage(FileSystem, "imgs/yikesful-mountain--test.png")
 	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
+	backgroundYikesfulMountain = loadImage(FileSystem, "imgs/level-background-2--test.png")
 
 	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")
 
@@ -58,7 +59,7 @@ func loadAssets() {
 
 	levelImages := map[string][]*ebiten.Image{
 		"Goo Alley":         {gooAlley, levelBG},
-		"Yikesful Mountain": {yikesfulMountain, levelBG},
+		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
 	}
 
 	lvlContent, err := ioutil.ReadFile("./levels.json")

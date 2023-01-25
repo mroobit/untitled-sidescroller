@@ -42,16 +42,17 @@ var (
 	//go:embed fonts
 	FileSystem embed.FS
 
-	ebitengineSplash *ebiten.Image
-	gemCt            *ebiten.Image
-	world            *ebiten.Image
-	gooAlley         *ebiten.Image
-	yikesfulMountain *ebiten.Image
-	levelBG          *ebiten.Image
-	portal           *ebiten.Image
-	creature         *ebiten.Image
-	blank            *ebiten.Image
-	gameOverMessage  *ebiten.Image
+	ebitengineSplash           *ebiten.Image
+	gemCt                      *ebiten.Image
+	world                      *ebiten.Image
+	gooAlley                   *ebiten.Image
+	yikesfulMountain           *ebiten.Image
+	levelBG                    *ebiten.Image
+	backgroundYikesfulMountain *ebiten.Image
+	portal                     *ebiten.Image
+	creature                   *ebiten.Image
+	blank                      *ebiten.Image
+	gameOverMessage            *ebiten.Image
 
 	levelWidth  int
 	levelHeight int
@@ -121,14 +122,13 @@ type Game struct {
 	mode        Mode
 	mainMenu    *Menu
 	txtRenderer *etxt.Renderer
-	background  *ebiten.Image
-	count       int
+	//	background  *ebiten.Image
+	count int
 	// currently have 2 ways to track completion: in *LevelData and in *Game
 	//lvlComplete   []string // list of names of levels that have been completed
-	//lvlCurrent    string
 	lvlComplete   []int // list of names of levels that have been completed
 	lvlCurrent    int
-	lvl           *Level
+	lvl           *LevelData
 	items         []string // change type, but to track which items have been collected
 	questItem     bool     // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
 	treasureCount int      // to deprecate -- use score instead: add up different types of treasure, different values
@@ -147,7 +147,6 @@ const (
 func NewGame() *Game {
 	log.Printf("Creating new game")
 	game := &Game{
-		background:    levelBG,
 		count:         0,
 		questItem:     false,
 		treasureCount: 0,
@@ -264,6 +263,7 @@ func (g *Game) Update() error {
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
 				g.lvlCurrent = i
+				g.lvl = l
 				g.mode = Play
 			}
 		}
@@ -555,7 +555,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case Play:
 		lvlOp := &ebiten.DrawImageOptions{}
 		lvlOp.GeoM.Translate(float64(mona.view.xCoord), float64(mona.view.yCoord))
-		screen.DrawImage(g.background, lvlOp)
+		screen.DrawImage(g.lvl.background, lvlOp)
 		screen.DrawImage(blank, lvlOp)
 		mOp := &ebiten.DrawImageOptions{}
 		mOp.GeoM.Translate(float64(mona.xCoord), float64(mona.yCoord))
@@ -568,7 +568,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				case t == 1:
 					top := &ebiten.DrawImageOptions{}
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64((i/tileXCount)*tileSize))
-					g.background.DrawImage(basicBrick.sprite, top)
+					g.lvl.background.DrawImage(basicBrick.sprite, top)
 				case t == 2:
 					if g.questItem == true {
 						top := &ebiten.DrawImageOptions{}
