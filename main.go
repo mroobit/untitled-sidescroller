@@ -87,14 +87,15 @@ func init() {
 	loadAssets()
 
 	monaView = NewViewer()
-	worldMonaView = NewViewer()
+	worldView = NewViewer()
 
 	currentFrame = defaultFrame
 	treasureFrame = defaultFrame
 	questItemFrame = defaultFrame
 
 	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
-	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
+	//	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
+	worldMona = NewWorldChar(spriteSheet, worldView)
 
 	basicBrick = NewBrick("basic", brick)
 
@@ -188,7 +189,7 @@ func (g *Game) Update() error {
 		radiusCheck := math.Sqrt(math.Pow(float64(worldMona.xCoord-500-worldMona.view.xCoord), 2) + math.Pow(float64(worldMona.yCoord-500-worldMona.view.yCoord), 2))
 		// 4 directions of worldMona movement checks
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-			worldMona.facing = 0
+			worldMona.direction = "right"
 			switch {
 			case worldMona.view.xCoord == 0 && worldMona.xCoord < 290:
 				worldMona.xCoord += 5
@@ -199,7 +200,7 @@ func (g *Game) Update() error {
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-			worldMona.facing = 48
+			worldMona.direction = "left"
 			switch {
 			case worldMona.view.xCoord == -400 && worldMona.xCoord > 290:
 				worldMona.xCoord -= 5
@@ -210,6 +211,7 @@ func (g *Game) Update() error {
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+			worldMona.direction = "up"
 			switch {
 			case worldMona.view.yCoord == -520 && worldMona.yCoord < 230:
 				worldMona.yCoord -= 5
@@ -220,6 +222,7 @@ func (g *Game) Update() error {
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+			worldMona.direction = "down"
 			switch {
 			case worldMona.view.yCoord == 0 && worldMona.yCoord > 250:
 				worldMona.yCoord += 5

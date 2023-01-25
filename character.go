@@ -12,8 +12,8 @@ var (
 	monaView *Viewer
 	mona     *Character
 
-	worldMonaView *Viewer
-	worldMona     *Character
+	worldView *Viewer
+	worldMona *WorldChar
 )
 
 // Viewer is the part of the total level that is visible, as indicated by the X,Y of the upper left corner
@@ -36,6 +36,14 @@ type Character struct {
 	hpCurrent int
 	hpTotal   int
 	lives     int
+}
+
+type WorldChar struct { // add to Character struct
+	sprite    *ebiten.Image
+	view      *Viewer
+	direction string
+	xCoord    int
+	yCoord    int
 }
 
 func (c *Character) xyReset(x, y int) {
@@ -76,6 +84,18 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 		lives:     3,
 	}
 	return character
+}
+
+func NewWorldChar(sprite *ebiten.Image, view *Viewer) *WorldChar {
+	log.Printf("Creating new world-navigation player character")
+	wc := &WorldChar{
+		sprite:    sprite,
+		view:      view,
+		direction: "right",
+		xCoord:    20,
+		yCoord:    0,
+	}
+	return wc
 }
 
 func (c *Character) death() {
