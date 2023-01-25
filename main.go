@@ -119,15 +119,11 @@ func main() {
 
 // Game contains all relevant data for game
 type Game struct {
-	mode        Mode
-	mainMenu    *Menu
-	txtRenderer *etxt.Renderer
-	//	background  *ebiten.Image
-	count int
-	// currently have 2 ways to track completion: in *LevelData and in *Game
-	//lvlComplete   []string // list of names of levels that have been completed
+	mode          Mode
+	mainMenu      *Menu
+	txtRenderer   *etxt.Renderer
+	count         int
 	lvlComplete   []int // list of names of levels that have been completed
-	lvlCurrent    int
 	lvl           *LevelData
 	items         []string // change type, but to track which items have been collected
 	questItem     bool     // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
@@ -262,7 +258,6 @@ func (g *Game) Update() error {
 				mona.xyReset(l.PlayerX, l.PlayerY)
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
-				g.lvlCurrent = i
 				g.lvl = l
 				g.mode = Play
 			}
@@ -458,13 +453,11 @@ func (g *Game) Update() error {
 		}
 
 		if g.questItem &&
-			(mona.xCoord > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord ||
-				mona.xCoord+48 > levelData[g.lvlCurrent].ExitX+mona.view.xCoord && mona.xCoord+48 < levelData[g.lvlCurrent].ExitX+50+mona.view.xCoord) &&
-			(mona.yCoord > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord ||
-				mona.yCoord+48 > levelData[g.lvlCurrent].ExitY+mona.view.yCoord && mona.yCoord+48 < levelData[g.lvlCurrent].ExitY+100+mona.view.yCoord) {
-			g.lvlComplete = append(g.lvlComplete, g.lvlCurrent)
-			levelData[g.lvlCurrent].Complete = true
-			g.lvlCurrent = -1
+			(mona.xCoord > g.lvl.ExitX+mona.view.xCoord && mona.xCoord < g.lvl.ExitX+50+mona.view.xCoord ||
+				mona.xCoord+48 > g.lvl.ExitX+mona.view.xCoord && mona.xCoord+48 < g.lvl.ExitX+50+mona.view.xCoord) &&
+			(mona.yCoord > g.lvl.ExitY+mona.view.yCoord && mona.yCoord < g.lvl.ExitY+100+mona.view.yCoord ||
+				mona.yCoord+48 > g.lvl.ExitY+mona.view.yCoord && mona.yCoord+48 < g.lvl.ExitY+100+mona.view.yCoord) {
+			g.lvl.Complete = true
 			g.questItem = false
 			clearLevel()
 			log.Print("Just hit the portal")
@@ -644,8 +637,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//msg += fmt.Sprintf("Treasure Count: %d\n", g.treasureCount)
 	//msg += fmt.Sprintf("Quest Item Acquired: %v\n", g.questItem)
 
-	//	msg += fmt.Sprintf("Levels Completed: %v\n", g.lvlComplete)
-	//	msg += fmt.Sprintf("Current Level: %v\n", g.lvlCurrent)
 	//	msg += fmt.Sprintf("Lives: %v\n", mona.lives)
 
 	//msg += fmt.Sprintf("Mona Facing: %s\n", mona.facing)
