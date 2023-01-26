@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"image/color"
 	"image/png"
 	"io/ioutil"
 	"log"
@@ -11,7 +12,15 @@ import (
 	"github.com/tinne26/etxt"
 )
 
-var fontLib *etxt.FontLibrary
+var (
+	fontLib *etxt.FontLibrary
+
+	menuColorActive   = color.RGBA{140, 50, 90, 255}
+	menuColorInactive = color.RGBA{0xff, 0xff, 0xff, 255}
+	scoreDisplayColor = color.RGBA{0, 0, 0, 255}
+
+	textColor color.RGBA
+)
 
 func init() {
 

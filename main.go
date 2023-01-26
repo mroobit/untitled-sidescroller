@@ -5,7 +5,6 @@ import (
 	"embed"
 	"errors"
 	"image"
-	"image/color"
 	"log"
 	"math"
 	"math/rand"
@@ -177,12 +176,6 @@ func (g *Game) Update() error {
 		}
 	case World:
 		// set worldMona location and view screen: this should go in Menu->Start New Game
-		if worldMona.xCoord == 20 {
-			worldMona.xCoord = 200
-			worldMona.yCoord = 300
-			worldMona.view.xCoord = -400
-			worldMona.view.yCoord = -500
-		}
 		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 			// later, ask confirmation if game not saved since entering World
 			// Options: Save, Quit without Saving
@@ -237,15 +230,7 @@ func (g *Game) Update() error {
 			}
 		}
 		// locations of levels on World, checking whether conditions are met to enter the level
-		for i, l := range levelData {
-			if ebiten.IsKeyPressed(ebiten.KeySpace) {
-				// diagnostics
-				log.Printf("Level %d", i)
-				log.Printf("Level Complete? %v", l.Complete)
-				log.Printf("World Mona X,Y: %d, %d", worldMona.xCoord, worldMona.yCoord)
-				log.Printf("View X, Y: %d, %d", worldMona.view.xCoord, worldMona.view.yCoord)
-				log.Printf("Level location: %d, %d", l.WorldX+worldMona.view.xCoord, l.WorldY+worldMona.view.yCoord)
-			}
+		for _, l := range levelData {
 			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord ||
 				worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) &&
 				(worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord ||
@@ -519,18 +504,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		screen.DrawImage(ebitengineSplash, op)
 	case Title:
-		/******************************************************************/
-		// these colors should be defined elsewhere....
-		colorActive := color.RGBA{140, 50, 90, 255}
-		colorInactive := color.RGBA{0xff, 0xff, 0xff, 255}
-		textColor := colorActive
+		textColor = menuColorActive
+		g.txtRenderer.SetAlign(etxt.YCenter, etxt.XCenter) // make sure type is centered (gets changed in Play/Pause)
 
 		var menuHead = g.mainMenu.head
 		var locY = 100
 		for i := g.mainMenu.length; i > 0; i-- {
-			textColor = colorInactive
+			textColor = menuColorInactive
 			if menuHead == g.mainMenu.active {
-				textColor = colorActive
+				textColor = menuColorActive
 			}
 			g.txtRenderer.SetTarget(screen)
 			g.txtRenderer.SetColor(textColor)
@@ -538,7 +520,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			locY += 50
 			menuHead = menuHead.next
 		}
-		/******************************************************************/
 
 	case World:
 		op := &ebiten.DrawImageOptions{}
@@ -628,7 +609,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		pointsCt := strconv.Itoa(g.score)
 		g.txtRenderer.SetTarget(screen)
-		g.txtRenderer.SetColor(color.RGBA{0, 0, 0, 255})
+		g.txtRenderer.SetColor(scoreDisplayColor)
 		g.txtRenderer.SetAlign(etxt.Top, etxt.Right)
 		g.txtRenderer.Draw(pointsCt, 160, 16)
 
