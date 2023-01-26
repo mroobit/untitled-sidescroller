@@ -92,9 +92,11 @@ func NewWorldChar(sprite *ebiten.Image, view *Viewer) *WorldChar {
 		sprite:    sprite,
 		view:      view,
 		direction: "right",
-		xCoord:    20,
-		yCoord:    0,
+		xCoord:    200,
+		yCoord:    300,
 	}
+	wc.view.xCoord = -400
+	wc.view.yCoord = -500
 	return wc
 }
 
