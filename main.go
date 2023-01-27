@@ -26,8 +26,6 @@ const (
 
 	defaultFrame = 2
 	frameCount   = 12
-	frameWidth   = 48
-	frameHeight  = 48
 
 	tileSize   = 50
 	tileXCount = 16
@@ -232,9 +230,9 @@ func (g *Game) Update() error {
 		// locations of levels on World, checking whether conditions are met to enter the level
 		for _, l := range levelData {
 			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord ||
-				worldMona.xCoord+48 > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+48 < l.WorldX+150+worldMona.view.xCoord) &&
+				worldMona.xCoord+monaWidth > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+monaWidth < l.WorldX+150+worldMona.view.xCoord) &&
 				(worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord ||
-					worldMona.yCoord+48 > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+48 < l.WorldY+150+worldMona.view.yCoord)) &&
+					worldMona.yCoord+monaHeight > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+monaHeight < l.WorldY+150+worldMona.view.yCoord)) &&
 				ebiten.IsKeyPressed(ebiten.KeyEnter) &&
 				l.Complete == false {
 
@@ -282,14 +280,14 @@ func (g *Game) Update() error {
 					c.xCoord -= 5
 				}
 			}
-			monaSide := (mona.xCoord - mona.view.xCoord + 48 + 1) / 50
+			monaSide := (mona.xCoord - mona.view.xCoord + monaWidth + 1) / 50
 			monaTop := (mona.yCoord - mona.view.yCoord) / 50
 			if levelMap[0][monaTop*tileXCount+monaSide] == 1 /* || levelMap[0][monaBase*tileXCount+monaSide] == 1*/ {
 				mona.xCoord -= 5
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-			mona.facing = 48
+			mona.facing = monaHeight
 			currentFrame = (g.count / 5) % frameCount
 			switch {
 			case mona.view.xCoord == -200 && mona.xCoord > 290:
@@ -347,9 +345,9 @@ func (g *Game) Update() error {
 			mona.yVelo += 1
 
 			if mona.yVelo >= 0 {
-				monaBase := (mona.yCoord - mona.view.yCoord + 48 + 1) / 50 // checks immediately BELOW base of sprite
+				monaBase := (mona.yCoord - mona.view.yCoord + monaHeight + 1) / 50 // checks immediately BELOW base of sprite
 				monaLeft := (mona.xCoord - mona.view.xCoord) / 50
-				monaRight := (mona.xCoord - mona.view.xCoord + 48) / 50
+				monaRight := (mona.xCoord - mona.view.xCoord + monaWidth) / 50
 				if levelMap[0][(monaBase)*tileXCount+monaLeft] == 1 || levelMap[0][(monaBase)*tileXCount+monaRight] == 1 {
 					mona.yCoord = (monaBase * 50) - 50 + mona.view.yCoord
 					mona.yVelo = gravity
@@ -357,9 +355,9 @@ func (g *Game) Update() error {
 			}
 		}
 		monaTop := (mona.yCoord - mona.view.yCoord) / 50
-		monaBase := (mona.yCoord - mona.view.yCoord + 48 + 1) / 50 // checks immediately BELOW base of sprite
+		monaBase := (mona.yCoord - mona.view.yCoord + monaHeight + 1) / 50 // checks immediately BELOW base of sprite
 		monaLeft := (mona.xCoord - mona.view.xCoord) / 50
-		monaRight := (mona.xCoord - mona.view.xCoord + 48) / 50
+		monaRight := (mona.xCoord - mona.view.xCoord + monaWidth) / 50
 		// gravity fixer
 		if mona.yVelo == gravity && levelMap[0][(monaBase*tileXCount)+monaLeft] != 1 && levelMap[0][(monaBase*tileXCount)+monaRight] != 1 {
 			switch {
@@ -439,9 +437,9 @@ func (g *Game) Update() error {
 
 		if g.questItem &&
 			(mona.xCoord > g.lvl.ExitX+mona.view.xCoord && mona.xCoord < g.lvl.ExitX+50+mona.view.xCoord ||
-				mona.xCoord+48 > g.lvl.ExitX+mona.view.xCoord && mona.xCoord+48 < g.lvl.ExitX+50+mona.view.xCoord) &&
+				mona.xCoord+monaWidth > g.lvl.ExitX+mona.view.xCoord && mona.xCoord+monaWidth < g.lvl.ExitX+50+mona.view.xCoord) &&
 			(mona.yCoord > g.lvl.ExitY+mona.view.yCoord && mona.yCoord < g.lvl.ExitY+100+mona.view.yCoord ||
-				mona.yCoord+48 > g.lvl.ExitY+mona.view.yCoord && mona.yCoord+48 < g.lvl.ExitY+100+mona.view.yCoord) {
+				mona.yCoord+monaHeight > g.lvl.ExitY+mona.view.yCoord && mona.yCoord+monaHeight < g.lvl.ExitY+100+mona.view.yCoord) {
 			g.lvl.Complete = true
 			g.questItem = false
 			clearLevel()
@@ -511,8 +509,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(blank, lvlOp)
 		mOp := &ebiten.DrawImageOptions{}
 		mOp.GeoM.Translate(float64(mona.xCoord), float64(mona.yCoord))
-		cx, cy := currentFrame*frameWidth, mona.facing
-		screen.DrawImage(mona.sprite.SubImage(image.Rect(cx, cy, cx+frameWidth, cy+frameHeight)).(*ebiten.Image), mOp)
+		cx, cy := currentFrame*monaWidth, mona.facing
+		screen.DrawImage(mona.sprite.SubImage(image.Rect(cx, cy, cx+monaWidth, cy+monaHeight)).(*ebiten.Image), mOp)
 		for _, l := range levelMap {
 			for i, t := range l {
 				switch {
