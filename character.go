@@ -9,8 +9,10 @@ import (
 var (
 	spriteSheet *ebiten.Image
 
-	monaView *Viewer
-	mona     *Character
+	monaView   *Viewer
+	mona       *Character
+	monaHeight = 48
+	monaWidth  = 48
 
 	worldView *Viewer
 	worldMona *WorldChar

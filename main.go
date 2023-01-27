@@ -316,16 +316,6 @@ func (g *Game) Update() error {
 			currentFrame = defaultFrame
 		}
 
-		// diagnostic: print map to log
-		if inpututil.IsKeyJustPressed(ebiten.KeyD) {
-			// diagnostics to log!
-			diagnosticMap := ""
-			for _, v := range levelMap[1] {
-				sv := strconv.Itoa(v)
-				diagnosticMap += sv
-			}
-			log.Printf(diagnosticMap)
-		}
 		// jump logic
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
 			mona.yVelo = -19
@@ -370,13 +360,22 @@ func (g *Game) Update() error {
 		monaBase := (mona.yCoord - mona.view.yCoord + 48 + 1) / 50 // checks immediately BELOW base of sprite
 		monaLeft := (mona.xCoord - mona.view.xCoord) / 50
 		monaRight := (mona.xCoord - mona.view.xCoord + 48) / 50
-		// basic gravity fixer, doesn't address jumping
-		if levelMap[0][(monaBase)*tileXCount+monaLeft] != 1 && levelMap[0][(monaBase)*tileXCount+monaRight] != 1 {
-			if mona.yVelo == gravity {
-				mona.yCoord += 3 // should be gravity, but that lowers too much
-				// BST to quickly assess where landing could happen?
+		// gravity fixer
+		if mona.yVelo == gravity && levelMap[0][(monaBase*tileXCount)+monaLeft] != 1 && levelMap[0][(monaBase*tileXCount)+monaRight] != 1 {
+			switch {
+			case mona.view.yCoord > -120 && mona.yCoord > 160:
+				mona.view.yCoord -= 3
+				for _, h := range hazardList {
+					h.yCoord -= 3
+				}
+				for _, c := range creatureList {
+					c.yCoord -= 3
+				}
+			default:
+				mona.yCoord += 3
 			}
 		}
+
 		blockTopLeft := monaTop*tileXCount + monaLeft
 		btlVal := levelMap[1][blockTopLeft]
 		blockTopRight := monaTop*tileXCount + monaRight
@@ -452,41 +451,8 @@ func (g *Game) Update() error {
 			g.mode = World
 		}
 
-		// creature movements
-		for _, c := range creatureList {
-			switch {
-			case c.movementCtr > 0:
-				// keep moving same dir
-				c.movementCtr--
-				if c.facing == 0 && c.xCoord <= 3 {
-					c.movementCtr = 0
-				} else if c.facing == 0 && c.xCoord > 3 {
-					c.xCoord -= 3
-				} else if c.facing == 50 && c.xCoord >= 597 {
-					c.movementCtr = 0
-				} else if c.xCoord < 597 {
-					c.xCoord += 3
-				}
-			case c.seesChar == true:
-				// rampage towards char
-				if c.facing == 0 {
-					c.xCoord -= 10
-				} else {
-					c.xCoord += 10
-				}
-			case c.pauseCtr > 0:
-				// pause
-				if c.pauseCtr%9 == 0 {
-					c.facing = rand.Intn(2) * 50
-				}
-				c.pauseCtr--
-			default:
-				// reset random
-				c.movementCtr = rand.Intn(50) + 20
-				c.pauseCtr = rand.Intn(40) + 20
-				c.facing = rand.Intn(2) * 50
-			}
-		}
+		creatureMovement()
+
 		if ebiten.IsKeyPressed(ebiten.KeyQ) {
 			g.mode = Pause
 		}
