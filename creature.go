@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -36,4 +37,41 @@ func NewCreature(name string, sprite *ebiten.Image, x int, y int, hp int, damage
 		movement:  name,
 	}
 	return creature
+}
+
+func creatureMovement() {
+	for _, c := range creatureList {
+		switch {
+		case c.movementCtr > 0:
+			// keep moving same dir
+			c.movementCtr--
+			if c.facing == 0 && c.xCoord <= 3 {
+				c.movementCtr = 0
+			} else if c.facing == 0 && c.xCoord > 3 {
+				c.xCoord -= 3
+			} else if c.facing == 50 && c.xCoord >= 597 {
+				c.movementCtr = 0
+			} else if c.xCoord < 597 {
+				c.xCoord += 3
+			}
+		case c.seesChar == true:
+			// rampage towards char
+			if c.facing == 0 {
+				c.xCoord -= 10
+			} else {
+				c.xCoord += 10
+			}
+		case c.pauseCtr > 0:
+			// pause
+			if c.pauseCtr%9 == 0 {
+				c.facing = rand.Intn(2) * 50
+			}
+			c.pauseCtr--
+		default:
+			// reset random
+			c.movementCtr = rand.Intn(50) + 20
+			c.pauseCtr = rand.Intn(40) + 20
+			c.facing = rand.Intn(2) * 50
+		}
+	}
 }
