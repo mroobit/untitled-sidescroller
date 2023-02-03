@@ -316,7 +316,7 @@ func (g *Game) Update() error {
 
 		// jump logic
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
-			mona.yVelo = -19
+			mona.yVelo = -gravity
 		}
 		if mona.yVelo < gravity {
 			// screen movement vs player movement
@@ -375,13 +375,13 @@ func (g *Game) Update() error {
 		}
 
 		blockTopLeft := monaTop*tileXCount + monaLeft
-		btlVal := levelMap[1][blockTopLeft]
+		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft]
 		blockTopRight := monaTop*tileXCount + monaRight
-		btrVal := levelMap[1][blockTopRight]
+		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight]
 		blockBaseLeft := monaBase*tileXCount + monaLeft
-		bblVal := levelMap[1][blockBaseLeft]
+		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft]
 		blockBaseRight := monaBase*tileXCount + monaRight
-		bbrVal := levelMap[1][blockBaseRight]
+		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight]
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 			mona.death()
 			clearLevel()
@@ -398,40 +398,44 @@ func (g *Game) Update() error {
 			switch {
 			case btlVal == 3:
 				g.questItem = true
+				levelMap[4][blockTopLeft] = 0
 			case btlVal == 4:
 				g.score += 10
+				levelMap[3][blockTopLeft] = 0
 			}
-			levelMap[1][blockTopLeft] = 0
 			blank.Clear()
 		}
 		if btrVal == 3 || btrVal == 4 {
 			switch {
 			case btrVal == 3:
 				g.questItem = true
+				levelMap[4][blockTopRight] = 0
 			case btrVal == 4:
 				g.score += 10
+				levelMap[3][blockTopRight] = 0
 			}
-			levelMap[1][blockTopRight] = 0
 			blank.Clear()
 		}
 		if bblVal == 3 || bblVal == 4 {
 			switch {
 			case bblVal == 3:
 				g.questItem = true
+				levelMap[4][blockBaseLeft] = 0
 			case bblVal == 4:
 				g.score += 10
+				levelMap[3][blockBaseLeft] = 0
 			}
-			levelMap[1][blockBaseLeft] = 0
 			blank.Clear()
 		}
 		if bbrVal == 3 || bbrVal == 4 {
 			switch {
 			case bbrVal == 3:
 				g.questItem = true
+				levelMap[4][blockBaseRight] = 0
 			case bbrVal == 4:
 				g.score += 10
+				levelMap[3][blockBaseRight] = 0
 			}
-			levelMap[1][blockBaseRight] = 0
 			blank.Clear()
 		}
 

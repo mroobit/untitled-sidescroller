@@ -29,6 +29,10 @@ func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index nu
 			nh := NewHazard("blob", hazard, 10, x, y, 100)
 			hazardList = append(hazardList, nh)
 		}
+	}
+	for i, h := range lvl.Layout[2] {
+		x := (i%tileXCount)*tileSize - vsx
+		y := (i/tileXCount)*tileSize + vsy
 		if h == 6 {
 			nc := NewCreature("teen yorp", creature, x, y, 100, 100, "teen yorp")
 			creatureList = append(creatureList, nc)
