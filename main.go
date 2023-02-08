@@ -85,6 +85,7 @@ func init() {
 	*/
 	rand.Seed(time.Now().UnixNano())
 	loadAssets()
+	treasureInit()
 
 	monaView = NewViewer()
 	worldView = NewViewer()
@@ -94,10 +95,7 @@ func init() {
 	questItemFrame = defaultFrame
 
 	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
-	//	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
 	worldMona = NewWorldChar(spriteSheet, worldView)
-
-	basicBrick = NewBrick("basic", brick)
 
 }
 
@@ -518,10 +516,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for _, l := range levelMap {
 			for i, t := range l {
 				switch {
-				case t == 1:
-					top := &ebiten.DrawImageOptions{}
-					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64((i/tileXCount)*tileSize))
-					g.lvl.background.DrawImage(basicBrick.sprite, top)
 				case t == 2:
 					if g.questItem == true {
 						top := &ebiten.DrawImageOptions{}
@@ -541,6 +535,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					blank.DrawImage(treasure.SubImage(image.Rect(tx, 0, tx+40, 40)).(*ebiten.Image), top)
 				}
 			}
+		}
+		for _, e := range enviroList {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
+			g.lvl.background.DrawImage(e.sprite, op)
 		}
 		for _, h := range hazardList {
 			hop := &ebiten.DrawImageOptions{}

@@ -22,6 +22,14 @@ type LevelData struct {
 
 func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index number as a parameter, or change to method with *Level as receiver...
 	// empty lists first, in case any left over from previous level attempt
+	for i, h := range lvl.Layout[0] {
+		x := (i % tileXCount) * tileSize
+		y := (i / tileXCount) * tileSize
+		if h == 1 {
+			nb := NewBrick("basic", brick, x, y)
+			enviroList = append(enviroList, nb)
+		}
+	}
 	for i, h := range lvl.Layout[1] {
 		x := (i%tileXCount)*tileSize - vsx
 		y := (i/tileXCount)*tileSize + vsy
@@ -37,6 +45,12 @@ func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index nu
 			nc := NewCreature("teen yorp", creature, x, y, 100, 100, "teen yorp")
 			creatureList = append(creatureList, nc)
 		}
+	}
+	for i, h := range lvl.Layout[3] {
+		x := (i%tileXCount)*tileSize - vsx
+		y := (i/tileXCount)*tileSize + vsy
+		nt := NewTreasure(h, x, y)
+		treasureList = append(treasureList, nt)
 	}
 }
 
