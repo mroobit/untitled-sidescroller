@@ -23,13 +23,7 @@ const (
 
 	ground  = 380
 	gravity = 20
-
-	defaultFrame = 2
-	frameCount   = 12
-
-	tileSize   = 50
-	tileXCount = 16
-	xCount     = winWidth / tileSize
+	radius  = 375.0
 )
 
 var (
@@ -53,24 +47,6 @@ var (
 	creature                   *ebiten.Image
 	blank                      *ebiten.Image
 	gameOverMessage            *ebiten.Image
-
-	levelWidth  int
-	levelHeight int
-
-	radius = 375.0
-)
-
-var (
-	//	mplusNormalFont font.Face
-
-	currentFrame int
-	//portalFrame  int
-	//	creatureFrame int
-
-	levelData []*LevelData
-	//	creatureList []*Creature
-
-	levelMap [][]int
 )
 
 func init() {
@@ -87,25 +63,21 @@ func init() {
 	loadAssets()
 	treasureInit()
 
-	monaView = NewViewer()
-	worldView = NewViewer()
+	playerView = NewViewer()
+	worldPlayerView = NewViewer()
 
-	currentFrame = defaultFrame
-	//treasureFrame = defaultFrame
-	//portalGemFrame = defaultFrame
-
-	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
-	worldMona = NewWorldChar(spriteSheet, worldView)
+	playerChar = NewCharacter("Mona", spriteSheet, playerView, 100)
+	worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
 
 }
 
 // main sets up game and runs it, or returns error
 func main() {
 
-	log.Printf("Starting up Mona Game POC...")
+	log.Printf("Starting up game...")
 
 	ebiten.SetWindowSize(winWidth, winHeight)
-	ebiten.SetWindowTitle("Mona Game, POC: Movement in Level Space")
+	ebiten.SetWindowTitle("A Pixely Side-Scrolling Game Send-up")
 
 	g := NewGame()
 	if err := ebiten.RunGame(g); err != nil {
@@ -171,74 +143,74 @@ func (g *Game) Update() error {
 			g.mainMenu.Prev()
 		}
 	case World:
-		// set worldMona location and view screen: this should go in Menu->Start New Game
+		// set worldPlayer location and view screen: this should go in Menu->Start New Game
 		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 			// later, ask confirmation if game not saved since entering World
 			// Options: Save, Quit without Saving
 			log.Printf("Exiting Game")
 			return ErrExit
 		}
-		// radiusCheck is making sure worldMona stays within movement radius of planet
-		radiusCheck := math.Sqrt(math.Pow(float64(worldMona.xCoord-500-worldMona.view.xCoord), 2) + math.Pow(float64(worldMona.yCoord-500-worldMona.view.yCoord), 2))
-		// 4 directions of worldMona movement checks
+		// radiusCheck is making sure worldPlayer stays within movement radius of planet
+		radiusCheck := math.Sqrt(math.Pow(float64(worldPlayer.xCoord-500-worldPlayer.view.xCoord), 2) + math.Pow(float64(worldPlayer.yCoord-500-worldPlayer.view.yCoord), 2))
+		// 4 directions of worldPlayer movement checks
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-			worldMona.direction = "right"
+			worldPlayer.direction = "right"
 			switch {
-			case worldMona.view.xCoord == 0 && worldMona.xCoord < 290:
-				worldMona.xCoord += 5
-			case worldMona.view.xCoord == -400 && radiusCheck+50 < radius: // worldMona.xCoord < 500: // but actually, the arc of the circle
-				worldMona.xCoord += 5
-			case worldMona.view.xCoord > -400:
-				worldMona.view.xCoord -= 5
+			case worldPlayer.view.xCoord == 0 && worldPlayer.xCoord < 290:
+				worldPlayer.xCoord += 5
+			case worldPlayer.view.xCoord == -400 && radiusCheck+50 < radius: // worldPlayer.xCoord < 500: // but actually, the arc of the circle
+				worldPlayer.xCoord += 5
+			case worldPlayer.view.xCoord > -400:
+				worldPlayer.view.xCoord -= 5
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-			worldMona.direction = "left"
+			worldPlayer.direction = "left"
 			switch {
-			case worldMona.view.xCoord == -400 && worldMona.xCoord > 290:
-				worldMona.xCoord -= 5
-			case worldMona.view.xCoord == 0 && radiusCheck < radius: // worldMona.xCoord < 500: // but actually, the arc of the circle
-				worldMona.xCoord -= 5
-			case worldMona.view.xCoord < 0:
-				worldMona.view.xCoord += 5
+			case worldPlayer.view.xCoord == -400 && worldPlayer.xCoord > 290:
+				worldPlayer.xCoord -= 5
+			case worldPlayer.view.xCoord == 0 && radiusCheck < radius: // worldPlayer.xCoord < 500: // but actually, the arc of the circle
+				worldPlayer.xCoord -= 5
+			case worldPlayer.view.xCoord < 0:
+				worldPlayer.view.xCoord += 5
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-			worldMona.direction = "up"
+			worldPlayer.direction = "up"
 			switch {
-			case worldMona.view.yCoord == -520 && worldMona.yCoord < 230:
-				worldMona.yCoord -= 5
-			case worldMona.view.yCoord == 0 && radiusCheck < radius:
-				worldMona.yCoord -= 5
-			case worldMona.view.yCoord < 0:
-				worldMona.view.yCoord += 5
+			case worldPlayer.view.yCoord == -520 && worldPlayer.yCoord < 230:
+				worldPlayer.yCoord -= 5
+			case worldPlayer.view.yCoord == 0 && radiusCheck < radius:
+				worldPlayer.yCoord -= 5
+			case worldPlayer.view.yCoord < 0:
+				worldPlayer.view.yCoord += 5
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-			worldMona.direction = "down"
+			worldPlayer.direction = "down"
 			switch {
-			case worldMona.view.yCoord == 0 && worldMona.yCoord > 250:
-				worldMona.yCoord += 5
-			case worldMona.view.yCoord == -520 && radiusCheck+50 < radius:
-				worldMona.yCoord += 5
-			case worldMona.view.yCoord > -520:
-				worldMona.view.yCoord -= 5
+			case worldPlayer.view.yCoord == 0 && worldPlayer.yCoord > 250:
+				worldPlayer.yCoord += 5
+			case worldPlayer.view.yCoord == -520 && radiusCheck+50 < radius:
+				worldPlayer.yCoord += 5
+			case worldPlayer.view.yCoord > -520:
+				worldPlayer.view.yCoord -= 5
 			}
 		}
 		// locations of levels on World, checking whether conditions are met to enter the level
 		for _, l := range levelData {
-			if ((worldMona.xCoord > l.WorldX+worldMona.view.xCoord && worldMona.xCoord < l.WorldX+150+worldMona.view.xCoord ||
-				worldMona.xCoord+monaWidth > l.WorldX+worldMona.view.xCoord && worldMona.xCoord+monaWidth < l.WorldX+150+worldMona.view.xCoord) &&
-				(worldMona.yCoord > l.WorldY+worldMona.view.yCoord && worldMona.yCoord < l.WorldY+150+worldMona.view.yCoord ||
-					worldMona.yCoord+monaHeight > l.WorldY+worldMona.view.yCoord && worldMona.yCoord+monaHeight < l.WorldY+150+worldMona.view.yCoord)) &&
+			if ((worldPlayer.xCoord > l.WorldX+worldPlayer.view.xCoord && worldPlayer.xCoord < l.WorldX+150+worldPlayer.view.xCoord ||
+				worldPlayer.xCoord+playerCharWidth > l.WorldX+worldPlayer.view.xCoord && worldPlayer.xCoord+playerCharWidth < l.WorldX+150+worldPlayer.view.xCoord) &&
+				(worldPlayer.yCoord > l.WorldY+worldPlayer.view.yCoord && worldPlayer.yCoord < l.WorldY+150+worldPlayer.view.yCoord ||
+					worldPlayer.yCoord+playerCharHeight > l.WorldY+worldPlayer.view.yCoord && worldPlayer.yCoord+playerCharHeight < l.WorldY+150+worldPlayer.view.yCoord)) &&
 				ebiten.IsKeyPressed(ebiten.KeyEnter) &&
 				l.Complete == false {
 
 				levelWidth, levelHeight = l.background.Size()
-				mona.resetView()
-				mona.setLocation(l.PlayerX, l.PlayerY)
-				mona.hpCurrent = mona.hpTotal
-				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
+				playerChar.resetView()
+				playerChar.setLocation(l.PlayerX, l.PlayerY)
+				playerChar.hpCurrent = playerChar.hpTotal
+				levelSetup(l, playerChar.view.xCoord, playerChar.view.yCoord)
 				g.lvl = l
 				g.portalGem = false
 				g.mode = Play
@@ -246,8 +218,8 @@ func (g *Game) Update() error {
 		}
 	case Play:
 		// death check
-		if mona.hpCurrent == 0 {
-			if mona.lives == 0 {
+		if playerChar.hpCurrent == 0 {
+			if playerChar.lives == 0 {
 				//	g.over()
 				log.Printf("Player ran out of lives - Game Over")
 			}
@@ -262,15 +234,15 @@ func (g *Game) Update() error {
 		creatureFrame = (g.count / 5) % creatureFrameCount
 		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-			mona.facing = 0
+			playerChar.facing = 0
 			currentFrame = (g.count / 5) % frameCount
 			switch {
-			case mona.view.xCoord == 0 && mona.xCoord < 290:
-				mona.xCoord += 5
-			case mona.view.xCoord == -200 && mona.xCoord < 530:
-				mona.xCoord += 5
-			case mona.view.xCoord > -200:
-				mona.view.xCoord -= 5
+			case playerChar.view.xCoord == 0 && playerChar.xCoord < 290:
+				playerChar.xCoord += 5
+			case playerChar.view.xCoord == -200 && playerChar.xCoord < 530:
+				playerChar.xCoord += 5
+			case playerChar.view.xCoord > -200:
+				playerChar.view.xCoord -= 5
 				for _, h := range hazardList {
 					h.xCoord -= 5
 				}
@@ -278,22 +250,22 @@ func (g *Game) Update() error {
 					c.xCoord -= 5
 				}
 			}
-			monaSide := (mona.xCoord - mona.view.xCoord + monaWidth + 1) / 50
-			monaTop := (mona.yCoord - mona.view.yCoord) / 50
-			if levelMap[0][monaTop*tileXCount+monaSide] == 1 /* || levelMap[0][monaBase*tileXCount+monaSide] == 1*/ {
-				mona.xCoord -= 5
+			playerCharSide := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth + 1) / 50
+			playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+			if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 /* || levelMap[0][playerCharBase*tileXCount+playerCharSide] == 1*/ {
+				playerChar.xCoord -= 5
 			}
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-			mona.facing = monaHeight
+			playerChar.facing = playerCharHeight
 			currentFrame = (g.count / 5) % frameCount
 			switch {
-			case mona.view.xCoord == -200 && mona.xCoord > 290:
-				mona.xCoord -= 5
-			case mona.view.xCoord == 0 && mona.xCoord > 40:
-				mona.xCoord -= 5
-			case mona.view.xCoord < 0:
-				mona.view.xCoord += 5
+			case playerChar.view.xCoord == -200 && playerChar.xCoord > 290:
+				playerChar.xCoord -= 5
+			case playerChar.view.xCoord == 0 && playerChar.xCoord > 40:
+				playerChar.xCoord -= 5
+			case playerChar.view.xCoord < 0:
+				playerChar.view.xCoord += 5
 				for _, c := range creatureList {
 					c.xCoord += 5
 				}
@@ -301,10 +273,10 @@ func (g *Game) Update() error {
 					h.xCoord += 5
 				}
 			}
-			monaSide := (mona.xCoord - mona.view.xCoord) / 50
-			monaTop := (mona.yCoord - mona.view.yCoord) / 50
-			if levelMap[0][monaTop*tileXCount+monaSide] == 1 {
-				mona.xCoord += 5
+			playerCharSide := (playerChar.xCoord - playerChar.view.xCoord) / 50
+			playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+			if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 {
+				playerChar.xCoord += 5
 			}
 		}
 		// player sprite frame reset
@@ -313,54 +285,54 @@ func (g *Game) Update() error {
 		}
 
 		// jump logic
-		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
-			mona.yVelo = -gravity
+		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && playerChar.yVelo == gravity {
+			playerChar.yVelo = -gravity
 		}
-		if mona.yVelo < gravity {
+		if playerChar.yVelo < gravity {
 			// screen movement vs player movement
 			switch {
-			case mona.yCoord < 160 && mona.view.yCoord-mona.yVelo < 0 && mona.yVelo < 0:
-				//	mona.yCoord -= mona.yVelo
-				mona.view.yCoord -= mona.yVelo
+			case playerChar.yCoord < 160 && playerChar.view.yCoord-playerChar.yVelo < 0 && playerChar.yVelo < 0:
+				//	playerChar.yCoord -= playerChar.yVelo
+				playerChar.view.yCoord -= playerChar.yVelo
 				for _, h := range hazardList {
-					h.yCoord -= mona.yVelo
+					h.yCoord -= playerChar.yVelo
 				}
 				for _, c := range creatureList {
-					c.yCoord -= mona.yVelo
+					c.yCoord -= playerChar.yVelo
 				}
-			case mona.yCoord > 160 && mona.view.yCoord-mona.yVelo > -120 && mona.yVelo > 0:
-				//	mona.yCoord -= mona.yVelo
-				mona.view.yCoord -= mona.yVelo
+			case playerChar.yCoord > 160 && playerChar.view.yCoord-playerChar.yVelo > -120 && playerChar.yVelo > 0:
+				//	playerChar.yCoord -= playerChar.yVelo
+				playerChar.view.yCoord -= playerChar.yVelo
 				for _, h := range hazardList {
-					h.yCoord -= mona.yVelo
+					h.yCoord -= playerChar.yVelo
 				}
 				for _, c := range creatureList {
-					c.yCoord -= mona.yVelo
+					c.yCoord -= playerChar.yVelo
 				}
 			default:
-				mona.yCoord += mona.yVelo
+				playerChar.yCoord += playerChar.yVelo
 			}
-			mona.yVelo += 1
+			playerChar.yVelo += 1
 
-			if mona.yVelo >= 0 {
-				monaBase := (mona.yCoord - mona.view.yCoord + monaHeight + 1) / 50 // checks immediately BELOW base of sprite
-				monaLeft := (mona.xCoord - mona.view.xCoord) / 50
-				monaRight := (mona.xCoord - mona.view.xCoord + monaWidth) / 50
-				if levelMap[0][(monaBase)*tileXCount+monaLeft] == 1 || levelMap[0][(monaBase)*tileXCount+monaRight] == 1 {
-					mona.yCoord = (monaBase * 50) - 50 + mona.view.yCoord
-					mona.yVelo = gravity
+			if playerChar.yVelo >= 0 {
+				playerCharBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
+				playerCharLeft := (playerChar.xCoord - playerChar.view.xCoord) / 50
+				playerCharRight := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth) / 50
+				if levelMap[0][(playerCharBase)*tileXCount+playerCharLeft] == 1 || levelMap[0][(playerCharBase)*tileXCount+playerCharRight] == 1 {
+					playerChar.yCoord = (playerCharBase * 50) - 50 + playerChar.view.yCoord
+					playerChar.yVelo = gravity
 				}
 			}
 		}
-		monaTop := (mona.yCoord - mona.view.yCoord) / 50
-		monaBase := (mona.yCoord - mona.view.yCoord + monaHeight + 1) / 50 // checks immediately BELOW base of sprite
-		monaLeft := (mona.xCoord - mona.view.xCoord) / 50
-		monaRight := (mona.xCoord - mona.view.xCoord + monaWidth) / 50
+		playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+		playerCharBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
+		playerCharLeft := (playerChar.xCoord - playerChar.view.xCoord) / 50
+		playerCharRight := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth) / 50
 		// gravity fixer
-		if mona.yVelo == gravity && levelMap[0][(monaBase*tileXCount)+monaLeft] != 1 && levelMap[0][(monaBase*tileXCount)+monaRight] != 1 {
+		if playerChar.yVelo == gravity && levelMap[0][(playerCharBase*tileXCount)+playerCharLeft] != 1 && levelMap[0][(playerCharBase*tileXCount)+playerCharRight] != 1 {
 			switch {
-			case mona.view.yCoord > -120 && mona.yCoord > 160:
-				mona.view.yCoord -= 3
+			case playerChar.view.yCoord > -120 && playerChar.yCoord > 160:
+				playerChar.view.yCoord -= 3
 				for _, h := range hazardList {
 					h.yCoord -= 3
 				}
@@ -368,22 +340,22 @@ func (g *Game) Update() error {
 					c.yCoord -= 3
 				}
 			default:
-				mona.yCoord += 3
+				playerChar.yCoord += 3
 			}
 		}
 
-		blockTopLeft := monaTop*tileXCount + monaLeft
+		blockTopLeft := playerCharTop*tileXCount + playerCharLeft
 		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft] + levelMap[1][blockTopLeft]
-		blockTopRight := monaTop*tileXCount + monaRight
+		blockTopRight := playerCharTop*tileXCount + playerCharRight
 		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight] + levelMap[1][blockTopRight]
-		blockBaseLeft := monaBase*tileXCount + monaLeft
+		blockBaseLeft := playerCharBase*tileXCount + playerCharLeft
 		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft] + levelMap[1][blockBaseLeft]
-		blockBaseRight := monaBase*tileXCount + monaRight
+		blockBaseRight := playerCharBase*tileXCount + playerCharRight
 		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight] + levelMap[1][blockBaseRight]
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
-			mona.death()
+			playerChar.death()
 			clearLevel()
-			if mona.lives == 0 {
+			if playerChar.lives == 0 {
 				log.Printf("Game over, no lives left")
 				//g.over()
 			}
@@ -438,10 +410,10 @@ func (g *Game) Update() error {
 		}
 
 		if g.portalGem &&
-			(mona.xCoord > g.lvl.ExitX+mona.view.xCoord && mona.xCoord < g.lvl.ExitX+50+mona.view.xCoord ||
-				mona.xCoord+monaWidth > g.lvl.ExitX+mona.view.xCoord && mona.xCoord+monaWidth < g.lvl.ExitX+50+mona.view.xCoord) &&
-			(mona.yCoord > g.lvl.ExitY+mona.view.yCoord && mona.yCoord < g.lvl.ExitY+100+mona.view.yCoord ||
-				mona.yCoord+monaHeight > g.lvl.ExitY+mona.view.yCoord && mona.yCoord+monaHeight < g.lvl.ExitY+100+mona.view.yCoord) {
+			(playerChar.xCoord > g.lvl.ExitX+playerChar.view.xCoord && playerChar.xCoord < g.lvl.ExitX+50+playerChar.view.xCoord ||
+				playerChar.xCoord+playerCharWidth > g.lvl.ExitX+playerChar.view.xCoord && playerChar.xCoord+playerCharWidth < g.lvl.ExitX+50+playerChar.view.xCoord) &&
+			(playerChar.yCoord > g.lvl.ExitY+playerChar.view.yCoord && playerChar.yCoord < g.lvl.ExitY+100+playerChar.view.yCoord ||
+				playerChar.yCoord+playerCharHeight > g.lvl.ExitY+playerChar.view.yCoord && playerChar.yCoord+playerCharHeight < g.lvl.ExitY+100+playerChar.view.yCoord) {
 			g.lvl.Complete = true
 			g.portalGem = false
 			clearLevel()
@@ -489,7 +461,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case World:
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(worldMona.view.xCoord), float64(worldMona.view.yCoord))
+		op.GeoM.Translate(float64(worldPlayer.view.xCoord), float64(worldPlayer.view.yCoord))
 		screen.DrawImage(world, op)
 		for _, l := range levelData {
 			lop := &ebiten.DrawImageOptions{}
@@ -497,22 +469,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			world.DrawImage(l.icon, lop)
 		}
 		op = &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(worldMona.xCoord), float64(worldMona.yCoord))
-		screen.DrawImage(worldMona.sprite.SubImage(image.Rect(0, 0, 50, 50)).(*ebiten.Image), op)
+		op.GeoM.Translate(float64(worldPlayer.xCoord), float64(worldPlayer.yCoord))
+		screen.DrawImage(worldPlayer.sprite.SubImage(image.Rect(0, 0, 50, 50)).(*ebiten.Image), op)
 
-		if mona.lives <= 0 {
+		if playerChar.lives <= 0 {
 			overOp := &ebiten.DrawImageOptions{}
 			screen.DrawImage(gameOverMessage, overOp)
 		}
 	case Play, Pause:
 		lvlOp := &ebiten.DrawImageOptions{}
-		lvlOp.GeoM.Translate(float64(mona.view.xCoord), float64(mona.view.yCoord))
+		lvlOp.GeoM.Translate(float64(playerChar.view.xCoord), float64(playerChar.view.yCoord))
 		screen.DrawImage(g.lvl.background, lvlOp)
 		screen.DrawImage(blank, lvlOp)
 		mOp := &ebiten.DrawImageOptions{}
-		mOp.GeoM.Translate(float64(mona.xCoord), float64(mona.yCoord))
-		cx, cy := currentFrame*monaWidth, mona.facing
-		screen.DrawImage(mona.sprite.SubImage(image.Rect(cx, cy, cx+monaWidth, cy+monaHeight)).(*ebiten.Image), mOp)
+		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
+		cx, cy := currentFrame*playerCharWidth, playerChar.facing
+		screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
 		for _, l := range levelMap {
 			for i, t := range l {
 				switch {
@@ -568,7 +540,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(125.0, 64.0)
 		screen.DrawImage(gemCt.SubImage(image.Rect(gx, 0, gx+35, 35)).(*ebiten.Image), op)
 
-		for lx := 0; lx < mona.lives; lx++ {
+		for lx := 0; lx < playerChar.lives; lx++ {
 			op = &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(21.0+float64(lx*20), 64.0)
 			screen.DrawImage(livesCt, op)

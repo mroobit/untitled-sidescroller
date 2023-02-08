@@ -4,6 +4,18 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+var (
+	levelWidth  int
+	levelHeight int
+
+	levelData []*LevelData
+	levelMap  [][]int
+
+	tileSize   = 50
+	tileXCount = 16
+	xCount     = winWidth / tileSize
+)
+
 type LevelData struct {
 	Name     string
 	Complete bool

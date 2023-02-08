@@ -9,13 +9,17 @@ import (
 var (
 	spriteSheet *ebiten.Image
 
-	monaView   *Viewer
-	mona       *Character
-	monaHeight = 48
-	monaWidth  = 48
+	playerView       *Viewer
+	playerChar       *Character
+	playerCharHeight = 48
+	playerCharWidth  = 48
 
-	worldView *Viewer
-	worldMona *WorldChar
+	worldPlayerView *Viewer
+	worldPlayer     *WorldChar
+
+	defaultFrame = 2
+	currentFrame = defaultFrame
+	frameCount   = 12
 )
 
 // Viewer is the part of the total level that is visible, as indicated by the X,Y of the upper left corner
