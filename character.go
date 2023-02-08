@@ -82,7 +82,7 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 		view:      view,
 		facing:    0,
 		xCoord:    20,
-		yCoord:    ground,
+		yCoord:    380,
 		yVelo:     gravity,
 		active:    false,
 		hpCurrent: hp,

@@ -10,6 +10,7 @@ import (
 const creatureFrameCount = 5
 
 var (
+	creature      *ebiten.Image
 	creatureFrame = 0
 	creatureList  []*Creature
 )

@@ -21,7 +21,6 @@ const (
 	winWidth  = 600
 	winHeight = 480
 
-	ground  = 380
 	gravity = 20
 	radius  = 375.0
 )
@@ -33,20 +32,17 @@ var (
 	//go:embed fonts
 	FileSystem embed.FS
 
-	ebitengineSplash           *ebiten.Image
-	gemCt                      *ebiten.Image
-	livesCt                    *ebiten.Image
-	messageBox                 *ebiten.Image
-	statsBox                   *ebiten.Image
-	world                      *ebiten.Image
-	gooAlley                   *ebiten.Image
-	yikesfulMountain           *ebiten.Image
-	levelBG                    *ebiten.Image
-	backgroundYikesfulMountain *ebiten.Image
-	portal                     *ebiten.Image
-	creature                   *ebiten.Image
-	blank                      *ebiten.Image
-	gameOverMessage            *ebiten.Image
+	ebitengineSplash *ebiten.Image
+
+	gemCt      *ebiten.Image
+	livesCt    *ebiten.Image
+	messageBox *ebiten.Image
+	statsBox   *ebiten.Image
+
+	world *ebiten.Image
+
+	blank           *ebiten.Image
+	gameOverMessage *ebiten.Image
 )
 
 func init() {

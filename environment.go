@@ -9,6 +9,7 @@ import (
 var (
 	brick  *ebiten.Image
 	hazard *ebiten.Image
+	portal *ebiten.Image
 )
 
 var (

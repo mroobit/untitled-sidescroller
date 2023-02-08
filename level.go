@@ -14,6 +14,12 @@ var (
 	tileSize   = 50
 	tileXCount = 16
 	xCount     = winWidth / tileSize
+
+	gooAlley         *ebiten.Image
+	yikesfulMountain *ebiten.Image
+
+	levelBG                    *ebiten.Image
+	backgroundYikesfulMountain *ebiten.Image
 )
 
 type LevelData struct {
