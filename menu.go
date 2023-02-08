@@ -67,6 +67,17 @@ func (m *Menu) Select() (Mode, error) {
 	switch {
 	case m.active.option == "New Game":
 		log.Printf("Starting New Game")
+		// prompt for character name
+		// create character with provided name
+		playerView = NewViewer()
+		worldPlayerView = NewViewer()
+
+		playerChar = NewCharacter("Mona", spriteSheet, playerView, 100)
+		worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
+
+		// Initialize SaveData with character name
+		saveData := NewSaveData()
+		saveData.Initialize("Mona")
 		return World, nil
 	case m.active.option == "Load Game":
 		//TODO

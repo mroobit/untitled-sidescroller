@@ -58,12 +58,9 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 	loadAssets()
 	treasureInit()
+	// if savefiles available, create *Menu of savefiles to choose from
 
-	playerView = NewViewer()
-	worldPlayerView = NewViewer()
-
-	playerChar = NewCharacter("Mona", spriteSheet, playerView, 100)
-	worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
+	//saveData := NewSaveData()
 
 }
 
@@ -116,7 +113,7 @@ func NewGame() *Game {
 func (g *Game) Update() error {
 	g.count++
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
-		g.mode = World
+		g.mode = Title
 	}
 	switch g.mode {
 	case Load:
