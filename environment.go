@@ -12,9 +12,13 @@ var (
 )
 
 var (
-	hazardFrame int
-	enviroList  []*Brick
-	hazardList  []*Hazard
+	hazardFrame      = 2
+	hazardFrameCount = 10
+	portalFrame      = 2
+	portalFrameCount = 5
+
+	enviroList []*Brick
+	hazardList []*Hazard
 )
 
 type Brick struct {

@@ -64,7 +64,7 @@ var (
 	//	mplusNormalFont font.Face
 
 	currentFrame int
-	portalFrame  int
+	//portalFrame  int
 	//	creatureFrame int
 
 	levelData []*LevelData
@@ -91,8 +91,8 @@ func init() {
 	worldView = NewViewer()
 
 	currentFrame = defaultFrame
-	treasureFrame = defaultFrame
-	portalGemFrame = defaultFrame
+	//treasureFrame = defaultFrame
+	//portalGemFrame = defaultFrame
 
 	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
 	worldMona = NewWorldChar(spriteSheet, worldView)
@@ -255,10 +255,10 @@ func (g *Game) Update() error {
 			log.Printf("Player still has lives -- retry level or return to world?")
 		}
 		// sprite frames for different things -- handle differently later
-		portalFrame = (g.count / 5) % 5
-		treasureFrame = (g.count / 5) % 7
-		portalGemFrame = (g.count / 5) % 5
-		hazardFrame = (g.count / 5) % 10
+		portalFrame = (g.count / 5) % portalFrameCount
+		treasureFrame = (g.count / 5) % treasureFrameCount
+		portalGemFrame = (g.count / 5) % portalGemFrameCount
+		hazardFrame = (g.count / 5) % hazardFrameCount
 		creatureFrame = (g.count / 5) % creatureFrameCount
 		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
