@@ -63,12 +63,12 @@ var (
 var (
 	//	mplusNormalFont font.Face
 
-	currentFrame  int
-	portalFrame   int
-	creatureFrame int
+	currentFrame int
+	portalFrame  int
+	//	creatureFrame int
 
-	levelData    []*LevelData
-	creatureList []*Creature
+	levelData []*LevelData
+	//	creatureList []*Creature
 
 	levelMap [][]int
 )
@@ -259,7 +259,7 @@ func (g *Game) Update() error {
 		treasureFrame = (g.count / 5) % 7
 		portalGemFrame = (g.count / 5) % 5
 		hazardFrame = (g.count / 5) % 10
-		creatureFrame = (g.count / 5) % 5
+		creatureFrame = (g.count / 5) % creatureFrameCount
 		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 			mona.facing = 0

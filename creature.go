@@ -7,6 +7,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const creatureFrameCount = 5
+
+var (
+	creatureFrame = 0
+	creatureList  []*Creature
+)
+
 type Creature struct {
 	name        string
 	sprite      *ebiten.Image
