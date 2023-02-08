@@ -49,8 +49,10 @@ func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index nu
 	for i, h := range lvl.Layout[3] {
 		x := (i%tileXCount)*tileSize - vsx
 		y := (i/tileXCount)*tileSize + vsy
-		nt := NewTreasure(h, x, y)
-		treasureList = append(treasureList, nt)
+		if h > 0 {
+			nt := NewTreasure(h, x, y)
+			treasureList = append(treasureList, nt)
+		}
 	}
 }
 
