@@ -9,18 +9,19 @@ import (
 var (
 	brick  *ebiten.Image
 	hazard *ebiten.Image
-
-	basicBrick *Brick
 )
 
 var (
 	hazardFrame int
+	enviroList  []*Brick
 	hazardList  []*Hazard
 )
 
 type Brick struct {
 	name         string
 	sprite       *ebiten.Image
+	xCoord       int
+	yCoord       int
 	impenetrable bool // can you walk through it
 	supportive   bool // can you land on it
 	destructible bool // can you destroy it
@@ -28,11 +29,13 @@ type Brick struct {
 	damage int // amount of damage per encounter -- if lethal, set absurdly high
 }
 
-func NewBrick(name string, sprite *ebiten.Image) *Brick {
+func NewBrick(name string, sprite *ebiten.Image, x int, y int) *Brick {
 	log.Printf("Creating new brick")
 	brick := &Brick{
 		name:         name,
 		sprite:       sprite,
+		xCoord:       x,
+		yCoord:       y,
 		impenetrable: true,
 		supportive:   true,
 		destructible: false,

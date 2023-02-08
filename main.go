@@ -85,6 +85,7 @@ func init() {
 	*/
 	rand.Seed(time.Now().UnixNano())
 	loadAssets()
+	treasureInit()
 
 	monaView = NewViewer()
 	worldView = NewViewer()
@@ -94,10 +95,7 @@ func init() {
 	portalGemFrame = defaultFrame
 
 	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
-	//	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
 	worldMona = NewWorldChar(spriteSheet, worldView)
-
-	basicBrick = NewBrick("basic", brick)
 
 }
 
@@ -125,7 +123,7 @@ type Game struct {
 	txtRenderer *etxt.Renderer
 	count       int
 	lvl         *LevelData
-	questItem   bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
+	portalGem   bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
 	score       int
 }
 
@@ -242,7 +240,7 @@ func (g *Game) Update() error {
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
 				g.lvl = l
-				g.questItem = false
+				g.portalGem = false
 				g.mode = Play
 			}
 		}
@@ -316,7 +314,7 @@ func (g *Game) Update() error {
 
 		// jump logic
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && mona.yVelo == gravity {
-			mona.yVelo = -19
+			mona.yVelo = -gravity
 		}
 		if mona.yVelo < gravity {
 			// screen movement vs player movement
@@ -375,13 +373,13 @@ func (g *Game) Update() error {
 		}
 
 		blockTopLeft := monaTop*tileXCount + monaLeft
-		btlVal := levelMap[1][blockTopLeft]
+		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft]
 		blockTopRight := monaTop*tileXCount + monaRight
-		btrVal := levelMap[1][blockTopRight]
+		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight]
 		blockBaseLeft := monaBase*tileXCount + monaLeft
-		bblVal := levelMap[1][blockBaseLeft]
+		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft]
 		blockBaseRight := monaBase*tileXCount + monaRight
-		bbrVal := levelMap[1][blockBaseRight]
+		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight]
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 			mona.death()
 			clearLevel()
@@ -397,51 +395,55 @@ func (g *Game) Update() error {
 		if btlVal == 3 || btlVal == 4 {
 			switch {
 			case btlVal == 3:
-				g.questItem = true
+				g.portalGem = true
+				levelMap[4][blockTopLeft] = 0
 			case btlVal == 4:
 				g.score += 10
+				levelMap[3][blockTopLeft] = 0
 			}
-			levelMap[1][blockTopLeft] = 0
 			blank.Clear()
 		}
 		if btrVal == 3 || btrVal == 4 {
 			switch {
 			case btrVal == 3:
-				g.questItem = true
+				g.portalGem = true
+				levelMap[4][blockTopRight] = 0
 			case btrVal == 4:
 				g.score += 10
+				levelMap[3][blockTopRight] = 0
 			}
-			levelMap[1][blockTopRight] = 0
 			blank.Clear()
 		}
 		if bblVal == 3 || bblVal == 4 {
 			switch {
 			case bblVal == 3:
-				g.questItem = true
+				g.portalGem = true
+				levelMap[4][blockBaseLeft] = 0
 			case bblVal == 4:
 				g.score += 10
+				levelMap[3][blockBaseLeft] = 0
 			}
-			levelMap[1][blockBaseLeft] = 0
 			blank.Clear()
 		}
 		if bbrVal == 3 || bbrVal == 4 {
 			switch {
 			case bbrVal == 3:
-				g.questItem = true
+				g.portalGem = true
+				levelMap[4][blockBaseRight] = 0
 			case bbrVal == 4:
 				g.score += 10
+				levelMap[3][blockBaseRight] = 0
 			}
-			levelMap[1][blockBaseRight] = 0
 			blank.Clear()
 		}
 
-		if g.questItem &&
+		if g.portalGem &&
 			(mona.xCoord > g.lvl.ExitX+mona.view.xCoord && mona.xCoord < g.lvl.ExitX+50+mona.view.xCoord ||
 				mona.xCoord+monaWidth > g.lvl.ExitX+mona.view.xCoord && mona.xCoord+monaWidth < g.lvl.ExitX+50+mona.view.xCoord) &&
 			(mona.yCoord > g.lvl.ExitY+mona.view.yCoord && mona.yCoord < g.lvl.ExitY+100+mona.view.yCoord ||
 				mona.yCoord+monaHeight > g.lvl.ExitY+mona.view.yCoord && mona.yCoord+monaHeight < g.lvl.ExitY+100+mona.view.yCoord) {
 			g.lvl.Complete = true
-			g.questItem = false
+			g.portalGem = false
 			clearLevel()
 			log.Print("Just hit the portal")
 			//levelComplete()
@@ -514,12 +516,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for _, l := range levelMap {
 			for i, t := range l {
 				switch {
-				case t == 1:
-					top := &ebiten.DrawImageOptions{}
-					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64((i/tileXCount)*tileSize))
-					g.lvl.background.DrawImage(basicBrick.sprite, top)
 				case t == 2:
-					if g.questItem == true {
+					if g.portalGem == true {
 						top := &ebiten.DrawImageOptions{}
 						top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
 						px := portalFrame * 100
@@ -538,6 +536,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 			}
 		}
+		for _, e := range enviroList {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
+			g.lvl.background.DrawImage(e.sprite, op)
+		}
 		for _, h := range hazardList {
 			hop := &ebiten.DrawImageOptions{}
 			hop.GeoM.Translate(float64(h.xCoord), float64(h.yCoord))
@@ -553,7 +556,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		gx := 0
-		if g.questItem == true {
+		if g.portalGem == true {
 			gx = 35
 		}
 
