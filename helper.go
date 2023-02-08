@@ -63,7 +63,7 @@ func loadAssets() {
 	brick = loadImage(FileSystem, "imgs/brick--test.png")
 	portal = loadImage(FileSystem, "imgs/portal-b--test.png")
 	treasure = loadImage(FileSystem, "imgs/treasure--test.png")
-	questItem = loadImage(FileSystem, "imgs/quest-item--test.png")
+	portalGem = loadImage(FileSystem, "imgs/quest-item--test.png")
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
 	creature = loadImage(FileSystem, "imgs/creature--test.png")
 	blank = loadImage(FileSystem, "imgs/blank-bg.png")

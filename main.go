@@ -91,7 +91,7 @@ func init() {
 
 	currentFrame = defaultFrame
 	treasureFrame = defaultFrame
-	questItemFrame = defaultFrame
+	portalGemFrame = defaultFrame
 
 	mona = NewCharacter("Mona", spriteSheet, monaView, 100)
 	//	worldMona = NewCharacter("World Mona", spriteSheet, worldMonaView, 100)
@@ -237,8 +237,8 @@ func (g *Game) Update() error {
 				l.Complete == false {
 
 				levelWidth, levelHeight = l.background.Size()
-				mona.viewReset()
-				mona.xyReset(l.PlayerX, l.PlayerY)
+				mona.resetView()
+				mona.setLocation(l.PlayerX, l.PlayerY)
 				mona.hpCurrent = mona.hpTotal
 				levelSetup(l, mona.view.xCoord, mona.view.yCoord)
 				g.lvl = l
@@ -259,7 +259,7 @@ func (g *Game) Update() error {
 		// sprite frames for different things -- handle differently later
 		portalFrame = (g.count / 5) % 5
 		treasureFrame = (g.count / 5) % 7
-		questItemFrame = (g.count / 5) % 5
+		portalGemFrame = (g.count / 5) % 5
 		hazardFrame = (g.count / 5) % 10
 		creatureFrame = (g.count / 5) % 5
 		// 2 direction movement
@@ -528,8 +528,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				case t == 3:
 					top := &ebiten.DrawImageOptions{}
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
-					qx := questItemFrame * 50
-					blank.DrawImage(questItem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
+					qx := portalGemFrame * 50
+					blank.DrawImage(portalGem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
 				case t == 4:
 					top := &ebiten.DrawImageOptions{}
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize+5), float64(i/tileXCount*tileSize+5))

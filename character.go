@@ -48,12 +48,12 @@ type WorldChar struct { // add to Character struct
 	yCoord    int
 }
 
-func (c *Character) xyReset(x, y int) {
+func (c *Character) setLocation(x, y int) {
 	log.Printf("Resetting x,y coordinates")
 	c.xCoord = x
 	c.yCoord = y
 }
-func (c *Character) viewReset() {
+func (c *Character) resetView() {
 	log.Printf("Resetting viewer")
 	c.view.xCoord = 0
 	c.view.yCoord = winHeight - levelHeight
