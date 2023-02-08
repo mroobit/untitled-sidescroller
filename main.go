@@ -373,13 +373,13 @@ func (g *Game) Update() error {
 		}
 
 		blockTopLeft := monaTop*tileXCount + monaLeft
-		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft]
+		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft] + levelMap[1][blockTopLeft]
 		blockTopRight := monaTop*tileXCount + monaRight
-		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight]
+		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight] + levelMap[1][blockTopRight]
 		blockBaseLeft := monaBase*tileXCount + monaLeft
-		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft]
+		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft] + levelMap[1][blockBaseLeft]
 		blockBaseRight := monaBase*tileXCount + monaRight
-		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight]
+		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight] + levelMap[1][blockBaseRight]
 		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
 			mona.death()
 			clearLevel()
