@@ -80,8 +80,14 @@ func (m *Menu) Select() (Mode, error) {
 		saveData.Initialize("Mona")
 		return World, nil
 	case m.active.option == "Load Game":
-		//TODO
 		log.Printf("Loading Game -- not yet implemented")
+		//TODO
+		// display save files available
+		// selectable-menu
+		// on selection [Enter],
+		// saveData := NewSaveData()
+		// saveData.Load(savefile)
+		// return World, nil
 		return Title, nil
 	case m.active.option == "How To Play":
 		//TODO

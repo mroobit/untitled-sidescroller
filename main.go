@@ -57,10 +57,10 @@ func init() {
 	*/
 	rand.Seed(time.Now().UnixNano())
 	loadAssets()
-	treasureInit()
+	initializeTreasures()
 	// if savefiles available, create *Menu of savefiles to choose from
-
-	//saveData := NewSaveData()
+	// for items in savefile location, add to slice
+	// loadMenu = NewMenu(saveitemsslice)
 
 }
 
@@ -210,68 +210,37 @@ func (g *Game) Update() error {
 			}
 		}
 	case Play:
-		// death check
-		if playerChar.hpCurrent == 0 {
-			if playerChar.lives == 0 {
-				//	g.over()
-				log.Printf("Player ran out of lives - Game Over")
-			}
-			//		g.retryLevel()
-			log.Printf("Player still has lives -- retry level or return to world?")
-		}
 		// sprite frames for different things -- handle differently later
 		portalFrame = (g.count / 5) % portalFrameCount
 		treasureFrame = (g.count / 5) % treasureFrameCount
 		portalGemFrame = (g.count / 5) % portalGemFrameCount
 		hazardFrame = (g.count / 5) % hazardFrameCount
 		creatureFrame = (g.count / 5) % creatureFrameCount
+
+		baseView := [2]int{playerChar.view.xCoord, playerChar.view.yCoord}
 		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-			playerChar.facing = 0
 			currentFrame = (g.count / 5) % frameCount
-			switch {
-			case playerChar.view.xCoord == 0 && playerChar.xCoord < 290:
-				playerChar.xCoord += 5
-			case playerChar.view.xCoord == -200 && playerChar.xCoord < 530:
-				playerChar.xCoord += 5
-			case playerChar.view.xCoord > -200:
-				playerChar.view.xCoord -= 5
-				for _, h := range hazardList {
-					h.xCoord -= 5
-				}
-				for _, c := range creatureList {
-					c.xCoord -= 5
-				}
-			}
-			playerCharSide := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth + 1) / 50
-			playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
-			if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 /* || levelMap[0][playerCharBase*tileXCount+playerCharSide] == 1*/ {
-				playerChar.xCoord -= 5
-			}
+			playerChar.moveRight()
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-			playerChar.facing = playerCharHeight
 			currentFrame = (g.count / 5) % frameCount
-			switch {
-			case playerChar.view.xCoord == -200 && playerChar.xCoord > 290:
-				playerChar.xCoord -= 5
-			case playerChar.view.xCoord == 0 && playerChar.xCoord > 40:
-				playerChar.xCoord -= 5
-			case playerChar.view.xCoord < 0:
-				playerChar.view.xCoord += 5
-				for _, c := range creatureList {
-					c.xCoord += 5
-				}
-				for _, h := range hazardList {
-					h.xCoord += 5
-				}
+			playerChar.moveLeft()
+		}
+		// if view x changed, update x location of on-screen objects
+		if baseView[0] != playerChar.view.xCoord {
+			delta := playerChar.view.xCoord - baseView[0]
+			for _, h := range hazardList {
+				h.xCoord += delta
 			}
-			playerCharSide := (playerChar.xCoord - playerChar.view.xCoord) / 50
-			playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
-			if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 {
-				playerChar.xCoord += 5
+			for _, c := range creatureList {
+				c.xCoord += delta
+			}
+			for _, t := range treasureList {
+				t.xCoord += delta
 			}
 		}
+
 		// player sprite frame reset
 		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
 			currentFrame = defaultFrame
@@ -293,6 +262,9 @@ func (g *Game) Update() error {
 				for _, c := range creatureList {
 					c.yCoord -= playerChar.yVelo
 				}
+				for _, t := range treasureList {
+					t.yCoord -= playerChar.yVelo
+				}
 			case playerChar.yCoord > 160 && playerChar.view.yCoord-playerChar.yVelo > -120 && playerChar.yVelo > 0:
 				//	playerChar.yCoord -= playerChar.yVelo
 				playerChar.view.yCoord -= playerChar.yVelo
@@ -301,6 +273,9 @@ func (g *Game) Update() error {
 				}
 				for _, c := range creatureList {
 					c.yCoord -= playerChar.yVelo
+				}
+				for _, t := range treasureList {
+					t.yCoord -= playerChar.yVelo
 				}
 			default:
 				playerChar.yCoord += playerChar.yVelo
@@ -331,6 +306,9 @@ func (g *Game) Update() error {
 				}
 				for _, c := range creatureList {
 					c.yCoord -= 3
+				}
+				for _, t := range treasureList {
+					t.yCoord -= 3
 				}
 			default:
 				playerChar.yCoord += 3
@@ -493,11 +471,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
 					qx := portalGemFrame * 50
 					blank.DrawImage(portalGem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
-				case t == 4:
-					top := &ebiten.DrawImageOptions{}
-					top.GeoM.Translate(float64((i%tileXCount)*tileSize+5), float64(i/tileXCount*tileSize+5))
-					tx := treasureFrame * 40
-					blank.DrawImage(treasure.SubImage(image.Rect(tx, 0, tx+40, 40)).(*ebiten.Image), top)
 				}
 			}
 		}
@@ -507,10 +480,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			g.lvl.background.DrawImage(e.sprite, op)
 		}
 		for _, h := range hazardList {
-			hop := &ebiten.DrawImageOptions{}
-			hop.GeoM.Translate(float64(h.xCoord), float64(h.yCoord))
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(h.xCoord), float64(h.yCoord))
 			hx := hazardFrame * 50
-			screen.DrawImage(h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), hop)
+			screen.DrawImage(h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), op)
 		}
 
 		for _, c := range creatureList {
@@ -518,6 +491,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			op.GeoM.Translate(float64(c.xCoord), float64(c.yCoord))
 			cx, cy := creatureFrame*50, c.facing
 			screen.DrawImage(c.sprite.SubImage(image.Rect(cx, cy, cx+50, cy+50)).(*ebiten.Image), op)
+		}
+
+		for _, t := range treasureList {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(t.xCoord)+5, float64(t.yCoord)+5)
+			tx := treasureFrame * 40
+			screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+40, 40)).(*ebiten.Image), op)
 		}
 
 		gx := 0

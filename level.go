@@ -75,8 +75,10 @@ func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index nu
 }
 
 func clearLevel() { // clear out all hazards, creatures from drawing lists
+	enviroList = []*Brick{}
 	hazardList = []*Hazard{}
 	creatureList = []*Creature{}
+	treasureList = []*Treasure{}
 	levelMap = [][]int{}
 }
 

@@ -106,6 +106,41 @@ func NewWorldChar(sprite *ebiten.Image, view *Viewer) *WorldChar {
 	return wc
 }
 
+func (c *Character) moveRight() {
+	// only impact c
+	playerChar.facing = 0
+	switch {
+	case playerChar.view.xCoord == 0 && playerChar.xCoord < 290:
+		playerChar.xCoord += 5
+	case playerChar.view.xCoord == -200 && playerChar.xCoord < 530:
+		playerChar.xCoord += 5
+	case playerChar.view.xCoord > -200:
+		playerChar.view.xCoord -= 5
+	}
+	playerCharSide := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth + 1) / 50
+	playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+	if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 /* || levelMap[0][playerCharBase*tileXCount+playerCharSide] == 1*/ {
+		playerChar.xCoord -= 5
+	}
+}
+
+func (c *Character) moveLeft() {
+	playerChar.facing = playerCharHeight
+	switch {
+	case playerChar.view.xCoord == -200 && playerChar.xCoord > 290:
+		playerChar.xCoord -= 5
+	case playerChar.view.xCoord == 0 && playerChar.xCoord > 40:
+		playerChar.xCoord -= 5
+	case playerChar.view.xCoord < 0:
+		playerChar.view.xCoord += 5
+	}
+	playerCharSide := (playerChar.xCoord - playerChar.view.xCoord) / 50
+	playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+	if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 {
+		playerChar.xCoord += 5
+	}
+}
+
 func (c *Character) death() {
 	c.hpCurrent = 0
 	c.lives--
