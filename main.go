@@ -147,48 +147,16 @@ func (g *Game) Update() error {
 		radiusCheck := math.Sqrt(math.Pow(float64(worldPlayer.xCoord-500-worldPlayer.view.xCoord), 2) + math.Pow(float64(worldPlayer.yCoord-500-worldPlayer.view.yCoord), 2))
 		// 4 directions of worldPlayer movement checks
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-			worldPlayer.direction = "right"
-			switch {
-			case worldPlayer.view.xCoord == 0 && worldPlayer.xCoord < 290:
-				worldPlayer.xCoord += 5
-			case worldPlayer.view.xCoord == -400 && radiusCheck+50 < radius: // worldPlayer.xCoord < 500: // but actually, the arc of the circle
-				worldPlayer.xCoord += 5
-			case worldPlayer.view.xCoord > -400:
-				worldPlayer.view.xCoord -= 5
-			}
+			worldPlayer.navRight(radiusCheck)
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-			worldPlayer.direction = "left"
-			switch {
-			case worldPlayer.view.xCoord == -400 && worldPlayer.xCoord > 290:
-				worldPlayer.xCoord -= 5
-			case worldPlayer.view.xCoord == 0 && radiusCheck < radius: // worldPlayer.xCoord < 500: // but actually, the arc of the circle
-				worldPlayer.xCoord -= 5
-			case worldPlayer.view.xCoord < 0:
-				worldPlayer.view.xCoord += 5
-			}
+			worldPlayer.navLeft(radiusCheck)
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-			worldPlayer.direction = "up"
-			switch {
-			case worldPlayer.view.yCoord == -520 && worldPlayer.yCoord < 230:
-				worldPlayer.yCoord -= 5
-			case worldPlayer.view.yCoord == 0 && radiusCheck < radius:
-				worldPlayer.yCoord -= 5
-			case worldPlayer.view.yCoord < 0:
-				worldPlayer.view.yCoord += 5
-			}
+			worldPlayer.navUp(radiusCheck)
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-			worldPlayer.direction = "down"
-			switch {
-			case worldPlayer.view.yCoord == 0 && worldPlayer.yCoord > 250:
-				worldPlayer.yCoord += 5
-			case worldPlayer.view.yCoord == -520 && radiusCheck+50 < radius:
-				worldPlayer.yCoord += 5
-			case worldPlayer.view.yCoord > -520:
-				worldPlayer.view.yCoord -= 5
-			}
+			worldPlayer.navDown(radiusCheck)
 		}
 		// locations of levels on World, checking whether conditions are met to enter the level
 		for _, l := range levelData {
