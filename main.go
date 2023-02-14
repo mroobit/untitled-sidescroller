@@ -185,6 +185,11 @@ func (g *Game) Update() error {
 		hazardFrame = (g.count / 5) % hazardFrameCount
 		creatureFrame = (g.count / 5) % creatureFrameCount
 
+		// player sprite frame reset
+		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
+			currentFrame = defaultFrame
+		}
+
 		baseView := [2]int{playerChar.view.xCoord, playerChar.view.yCoord}
 		// 2 direction movement
 		if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
@@ -209,20 +214,21 @@ func (g *Game) Update() error {
 			}
 		}
 
-		// player sprite frame reset
-		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
-			currentFrame = defaultFrame
+		// jump logic
+		//		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && playerChar.yVelo == gravity { // && a pixel beneath playerChar is enviroBlock
+		//			playerChar.yVelo = -gravity
+		//		}
+
+		if ebiten.IsKeyPressed(ebiten.KeySpace) {
+			log.Printf("KeyPress Duration: %d", inpututil.KeyPressDuration(ebiten.KeySpace))
+			log.Printf("Character status: %s", playerChar.status)
+			playerChar.jump(inpututil.KeyPressDuration(ebiten.KeySpace))
 		}
 
-		// jump logic
-		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && playerChar.yVelo == gravity {
-			playerChar.yVelo = -gravity
-		}
 		if playerChar.yVelo < gravity {
 			// screen movement vs player movement
-			switch {
-			case playerChar.yCoord < 160 && playerChar.view.yCoord-playerChar.yVelo < 0 && playerChar.yVelo < 0:
-				//	playerChar.yCoord -= playerChar.yVelo
+			if (playerChar.yCoord < 160 && playerChar.view.yCoord-playerChar.yVelo < 0 && playerChar.yVelo < 0) ||
+				(playerChar.yCoord > 160 && playerChar.view.yCoord-playerChar.yVelo > -120 && playerChar.yVelo > 0) {
 				playerChar.view.yCoord -= playerChar.yVelo
 				for _, h := range hazardList {
 					h.yCoord -= playerChar.yVelo
@@ -233,21 +239,10 @@ func (g *Game) Update() error {
 				for _, t := range treasureList {
 					t.yCoord -= playerChar.yVelo
 				}
-			case playerChar.yCoord > 160 && playerChar.view.yCoord-playerChar.yVelo > -120 && playerChar.yVelo > 0:
-				//	playerChar.yCoord -= playerChar.yVelo
-				playerChar.view.yCoord -= playerChar.yVelo
-				for _, h := range hazardList {
-					h.yCoord -= playerChar.yVelo
-				}
-				for _, c := range creatureList {
-					c.yCoord -= playerChar.yVelo
-				}
-				for _, t := range treasureList {
-					t.yCoord -= playerChar.yVelo
-				}
-			default:
+			} else {
 				playerChar.yCoord += playerChar.yVelo
 			}
+
 			playerChar.yVelo += 1
 
 			if playerChar.yVelo >= 0 {
@@ -265,7 +260,7 @@ func (g *Game) Update() error {
 		playerCharLeft := (playerChar.xCoord - playerChar.view.xCoord) / 50
 		playerCharRight := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth) / 50
 		// gravity fixer
-		if playerChar.yVelo == gravity && levelMap[0][(playerCharBase*tileXCount)+playerCharLeft] != 1 && levelMap[0][(playerCharBase*tileXCount)+playerCharRight] != 1 {
+		if playerChar.status != "ground" && levelMap[0][(playerCharBase*tileXCount)+playerCharLeft] != 1 && levelMap[0][(playerCharBase*tileXCount)+playerCharRight] != 1 {
 			switch {
 			case playerChar.view.yCoord > -120 && playerChar.yCoord > 160:
 				playerChar.view.yCoord -= 3
@@ -281,6 +276,12 @@ func (g *Game) Update() error {
 			default:
 				playerChar.yCoord += 3
 			}
+		}
+		playerCharFreshBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
+		if levelMap[0][(playerCharFreshBase*tileXCount)+playerCharLeft] == 1 || levelMap[0][(playerCharFreshBase*tileXCount)+playerCharRight] == 1 {
+			playerChar.status = "ground"
+		} else if playerChar.yVelo == gravity {
+			playerChar.status = "fall"
 		}
 
 		blockTopLeft := playerCharTop*tileXCount + playerCharLeft

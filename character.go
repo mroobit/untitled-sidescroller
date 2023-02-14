@@ -39,6 +39,7 @@ type Character struct {
 	yCoord    int
 	yVelo     int
 	active    bool
+	status    string
 	hpCurrent int
 	hpTotal   int
 	lives     int
@@ -85,6 +86,7 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 		yCoord:    380,
 		yVelo:     gravity,
 		active:    false,
+		status:    "ground",
 		hpCurrent: hp,
 		hpTotal:   hp,
 		lives:     3,
@@ -138,6 +140,19 @@ func (c *Character) moveLeft() {
 	playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
 	if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 {
 		playerChar.xCoord += 5
+	}
+}
+
+func (c *Character) jump(duration int) { // strength is keypress duration
+	switch {
+	case c.status == "ground" && duration == 1:
+		c.status = "jump"
+		c.yVelo = -gravity
+		//		c.yVelo = -10
+		//	case c.status == "jump" && duration == 2:
+		//		c.yVelo += -6
+		//	case c.status == "jump" && duration == 3:
+		//		c.yVelo += -4
 	}
 }
 
