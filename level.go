@@ -22,6 +22,7 @@ var (
 	backgroundYikesfulMountain *ebiten.Image
 )
 
+// LevelData describes the starting state of a given level
 type LevelData struct {
 	Name     string
 	Complete bool

@@ -25,12 +25,14 @@ func initializeTreasures() {
 	}
 }
 
+// TreasureTemplate holds general description for a specific type of treasure
 type TreasureTemplate struct {
 	name   string
 	sprite *ebiten.Image
 	value  int
 }
 
+// Treasure describes a specific treasure object in a level
 type Treasure struct {
 	name      string
 	sprite    *ebiten.Image
@@ -40,6 +42,7 @@ type Treasure struct {
 	collected bool
 }
 
+// NewTreasure creates a new Treasure object at specific coordinates in a level
 func NewTreasure(id int, x int, y int) *Treasure {
 	log.Printf("Creating new treasure")
 	treasure := &Treasure{
