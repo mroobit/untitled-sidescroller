@@ -15,6 +15,7 @@ var (
 	creatureList  []*Creature
 )
 
+// Creature describes specific creature
 type Creature struct {
 	name        string
 	sprite      *ebiten.Image
@@ -30,6 +31,7 @@ type Creature struct {
 	pauseCtr    int
 }
 
+// NewCreature creates a new Creature within a level
 func NewCreature(name string, sprite *ebiten.Image, x int, y int, hp int, damage int, movement string) *Creature {
 	log.Printf("Creating new creature")
 	creature := &Creature{

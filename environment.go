@@ -22,6 +22,7 @@ var (
 	hazardList []*Hazard
 )
 
+// Brick describes a specific environment object
 type Brick struct {
 	name         string
 	sprite       *ebiten.Image
@@ -34,6 +35,7 @@ type Brick struct {
 	damage int // amount of damage per encounter -- if lethal, set absurdly high
 }
 
+// NewBrick creates a new Brick within a level
 func NewBrick(name string, sprite *ebiten.Image, x int, y int) *Brick {
 	log.Printf("Creating new brick")
 	brick := &Brick{
@@ -49,26 +51,28 @@ func NewBrick(name string, sprite *ebiten.Image, x int, y int) *Brick {
 	return brick
 }
 
+// Hazard describes a specific hazardous object
 type Hazard struct {
-	name        string
-	sprite      *ebiten.Image
-	frame_curr  int
-	frame_total int
-	xCoord      int
-	yCoord      int
-	damage      int
+	name       string
+	sprite     *ebiten.Image
+	frameCurr  int
+	frameTotal int
+	xCoord     int
+	yCoord     int
+	damage     int
 }
 
+// NewHazard creates a new Hazard within a level
 func NewHazard(name string, sprite *ebiten.Image, frames int, x int, y int, damage int) *Hazard {
 	log.Printf("Creating new hazard")
 	hazard := &Hazard{
-		name:        name,
-		sprite:      sprite,
-		frame_curr:  defaultFrame,
-		frame_total: frames,
-		xCoord:      x,
-		yCoord:      y,
-		damage:      damage,
+		name:       name,
+		sprite:     sprite,
+		frameCurr:  defaultFrame,
+		frameTotal: frames,
+		xCoord:     x,
+		yCoord:     y,
+		damage:     damage,
 	}
 	return hazard
 }

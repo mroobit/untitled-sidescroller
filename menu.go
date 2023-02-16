@@ -2,14 +2,7 @@ package main
 
 import "log"
 
-// menu as cyclical, doubly-linked list
-
-type MenuItem struct {
-	option string
-	prev   *MenuItem
-	next   *MenuItem
-}
-
+// Menu is a cyclical doubly-linked list with selectable MenuItems and an active option
 type Menu struct {
 	head   *MenuItem
 	tail   *MenuItem
@@ -17,11 +10,19 @@ type Menu struct {
 	length int
 }
 
+// MenuItem describes a selectable option as a node in a Menu
+type MenuItem struct {
+	option string
+	prev   *MenuItem
+	next   *MenuItem
+}
+
 var (
 	menuItems = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
 	mainMenu  *Menu
 )
 
+// NewMenu creates a Menu from a slice of select
 func NewMenu(items []string) *Menu {
 	menu := &Menu{}
 	for _, v := range items {
@@ -32,6 +33,7 @@ func NewMenu(items []string) *Menu {
 	return menu
 }
 
+// NewMenuItem creates a MenuItem node
 func NewMenuItem(o string) *MenuItem {
 	menuItem := &MenuItem{
 		option: o,
@@ -52,16 +54,19 @@ func (m *Menu) appendItem(s string) {
 	m.head.prev = m.tail
 }
 
+// Next changes active menu selection to next item
 func (m *Menu) Next() {
 	log.Printf("Next Option")
 	m.active = m.active.next
 }
 
+// Prev changes active menu selection to previous item
 func (m *Menu) Prev() {
 	log.Printf("Previous Option")
 	m.active = m.active.prev
 }
 
+// Select changes game mode according to active MenuItem selected
 func (m *Menu) Select() (Mode, error) {
 	log.Printf("Selecting an Item")
 	switch {

@@ -26,8 +26,10 @@ const (
 )
 
 var (
+	// ErrExit is the "error" that signals to close the game
 	ErrExit = errors.New("Exiting Game")
 
+	// FileSystem of images, fonts
 	//go:embed imgs
 	//go:embed fonts
 	FileSystem embed.FS
@@ -92,6 +94,7 @@ type Game struct {
 	score       int
 }
 
+// Mode indicates current gameplay state
 type Mode int
 
 const (
@@ -102,6 +105,7 @@ const (
 	Pause
 )
 
+// NewGame creates a new Game instance (used once, to run program)
 func NewGame() *Game {
 	log.Printf("Creating new game")
 	game := &Game{}
@@ -110,6 +114,7 @@ func NewGame() *Game {
 	return game
 }
 
+// Update controls all game logic updates. It is part of the main game loop in Ebitengine.
 func (g *Game) Update() error {
 	g.count++
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
@@ -243,7 +248,7 @@ func (g *Game) Update() error {
 				playerChar.yCoord += playerChar.yVelo
 			}
 
-			playerChar.yVelo += 1
+			playerChar.yVelo++
 
 			if playerChar.yVelo >= 0 {
 				playerCharBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
@@ -376,6 +381,7 @@ func (g *Game) Update() error {
 	return nil
 }
 
+// Draw contains all code for drawing images to screen. It is part of the main game loop in Ebitengine.
 func (g *Game) Draw(screen *ebiten.Image) {
 	switch g.mode {
 	case Load:
@@ -499,6 +505,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//	ebitenutil.DebugPrint(screen, msg)
 }
 
+// Layout controls the game window and scaling. It is part of the main game loop in Ebitengine.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return winWidth, winHeight
+	s := ebiten.DeviceScaleFactor()
+	return int(float64(outsideWidth) * s), int(float64(outsideHeight) * s)
 }

@@ -30,6 +30,7 @@ type Viewer struct {
 	height int
 }
 
+// Character describes the player character's state
 type Character struct {
 	name      string
 	sprite    *ebiten.Image
@@ -45,6 +46,7 @@ type Character struct {
 	lives     int
 }
 
+// WorldChar describes the player navigation avatar on the main screen
 type WorldChar struct { // add to Character struct
 	sprite    *ebiten.Image
 	view      *Viewer
@@ -64,6 +66,7 @@ func (c *Character) resetView() {
 	c.view.yCoord = winHeight - levelHeight
 }
 
+// NewViewer creates new Viewer (screen offset)
 func NewViewer() *Viewer {
 	log.Printf("Creating new viewer")
 	viewer := &Viewer{
@@ -75,6 +78,7 @@ func NewViewer() *Viewer {
 	return viewer
 }
 
+// NewCharacter creates new player character
 func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Character {
 	log.Printf("Creating new character %s", name)
 	character := &Character{
@@ -94,6 +98,7 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 	return character
 }
 
+// NewWorldChar creates new player navigation avatar
 func NewWorldChar(sprite *ebiten.Image, view *Viewer) *WorldChar {
 	log.Printf("Creating new world-navigation player character")
 	wc := &WorldChar{
