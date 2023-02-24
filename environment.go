@@ -6,6 +6,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const blockHW = 50
+
 var (
 	brick  *ebiten.Image
 	hazard *ebiten.Image
