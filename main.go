@@ -164,12 +164,11 @@ func (g *Game) Update() error {
 		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
 			worldPlayer.navDown(radiusCheck)
 		}
+
+		worldPlayerBox := image.Rect(worldPlayer.xCoord, worldPlayer.yCoord, worldPlayer.xCoord+worldCharWidth, worldPlayer.yCoord+worldCharHeight)
 		// locations of levels on World, checking whether conditions are met to enter the level
 		for _, l := range levelData {
-			if ((worldPlayer.xCoord > l.WorldX+worldPlayer.view.xCoord && worldPlayer.xCoord < l.WorldX+150+worldPlayer.view.xCoord ||
-				worldPlayer.xCoord+playerCharWidth > l.WorldX+worldPlayer.view.xCoord && worldPlayer.xCoord+playerCharWidth < l.WorldX+150+worldPlayer.view.xCoord) &&
-				(worldPlayer.yCoord > l.WorldY+worldPlayer.view.yCoord && worldPlayer.yCoord < l.WorldY+150+worldPlayer.view.yCoord ||
-					worldPlayer.yCoord+playerCharHeight > l.WorldY+worldPlayer.view.yCoord && worldPlayer.yCoord+playerCharHeight < l.WorldY+150+worldPlayer.view.yCoord)) &&
+			if worldPlayerBox.Overlaps(image.Rect(l.WorldX+worldPlayer.view.xCoord, l.WorldY+worldPlayer.view.yCoord, l.WorldX+worldPlayer.view.xCoord+150, l.WorldY+worldPlayer.view.yCoord+150)) &&
 				ebiten.IsKeyPressed(ebiten.KeyEnter) &&
 				l.Complete == false {
 
@@ -186,10 +185,11 @@ func (g *Game) Update() error {
 	case Play:
 		// sprite frames for different things -- handle differently later
 		portalFrame = (g.count / 5) % portalFrameCount
-		treasureFrame = (g.count / 5) % treasureFrameCount
-		portalGemFrame = (g.count / 5) % portalGemFrameCount
 		hazardFrame = (g.count / 5) % hazardFrameCount
 		creatureFrame = (g.count / 5) % creatureFrameCount
+
+		treasureTypeList[3].frame = (g.count / 5) % treasureTypeList[3].frameCt
+		treasureTypeList[4].frame = (g.count / 5) % treasureTypeList[4].frameCt
 
 		// player sprite frame reset
 		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
@@ -261,7 +261,6 @@ func (g *Game) Update() error {
 				}
 			}
 		}
-		playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
 		playerCharBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
 		playerCharLeft := (playerChar.xCoord - playerChar.view.xCoord) / 50
 		playerCharRight := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth) / 50
@@ -283,6 +282,7 @@ func (g *Game) Update() error {
 				playerChar.yCoord += 3
 			}
 		}
+
 		playerCharFreshBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
 		if levelMap[0][(playerCharFreshBase*tileXCount)+playerCharLeft] == 1 || levelMap[0][(playerCharFreshBase*tileXCount)+playerCharRight] == 1 {
 			playerChar.status = "ground"
@@ -290,76 +290,40 @@ func (g *Game) Update() error {
 			playerChar.status = "fall"
 		}
 
-		blockTopLeft := playerCharTop*tileXCount + playerCharLeft
-		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft] + levelMap[1][blockTopLeft]
-		blockTopRight := playerCharTop*tileXCount + playerCharRight
-		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight] + levelMap[1][blockTopRight]
-		blockBaseLeft := playerCharBase*tileXCount + playerCharLeft
-		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft] + levelMap[1][blockBaseLeft]
-		blockBaseRight := playerCharBase*tileXCount + playerCharRight
-		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight] + levelMap[1][blockBaseRight]
-		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
-			playerChar.death()
-			clearLevel()
-			if playerChar.lives == 0 {
-				log.Printf("Game over, no lives left")
-				//g.over()
-			}
-			log.Printf("Retry Level or return to world map?")
-			g.mode = World
-			//g.retryLevel()
+		playerBox := image.Rect(playerChar.xCoord, playerChar.yCoord, playerChar.xCoord+playerCharWidth, playerChar.yCoord+playerCharWidth)
 
-		}
-		if btlVal == 3 || btlVal == 4 {
-			switch {
-			case btlVal == 3:
-				g.portalGem = true
-				levelMap[4][blockTopLeft] = 0
-			case btlVal == 4:
-				g.score += 10
-				levelMap[3][blockTopLeft] = 0
+		for i, t := range treasureList {
+			treasureBox := image.Rect(t.xCoord, t.yCoord, t.xCoord+50, t.yCoord+50)
+			if playerBox.Overlaps(treasureBox) {
+				g.score += t.value
+				if t.name == "Portal Gem" {
+					g.portalGem = true
+				}
+				treasureList = append(treasureList[0:i], treasureList[i+1:]...)
 			}
-			blank.Clear()
 		}
-		if btrVal == 3 || btrVal == 4 {
-			switch {
-			case btrVal == 3:
-				g.portalGem = true
-				levelMap[4][blockTopRight] = 0
-			case btrVal == 4:
-				g.score += 10
-				levelMap[3][blockTopRight] = 0
+
+		for _, h := range hazardList {
+			hazardBox := image.Rect(h.xCoord, h.yCoord, h.xCoord+50, h.yCoord+50)
+			if playerBox.Overlaps(hazardBox) {
+				playerChar.death()
+				clearLevel()
+				g.mode = World
 			}
-			blank.Clear()
 		}
-		if bblVal == 3 || bblVal == 4 {
-			switch {
-			case bblVal == 3:
-				g.portalGem = true
-				levelMap[4][blockBaseLeft] = 0
-			case bblVal == 4:
-				g.score += 10
-				levelMap[3][blockBaseLeft] = 0
+
+		for _, c := range creatureList {
+			creatureBox := image.Rect(c.xCoord, c.yCoord, c.xCoord+50, c.yCoord+50)
+			if playerBox.Overlaps(creatureBox) {
+				playerChar.death()
+				clearLevel()
+				g.mode = World
 			}
-			blank.Clear()
-		}
-		if bbrVal == 3 || bbrVal == 4 {
-			switch {
-			case bbrVal == 3:
-				g.portalGem = true
-				levelMap[4][blockBaseRight] = 0
-			case bbrVal == 4:
-				g.score += 10
-				levelMap[3][blockBaseRight] = 0
-			}
-			blank.Clear()
 		}
 
 		if g.portalGem &&
-			(playerChar.xCoord > g.lvl.ExitX+playerChar.view.xCoord && playerChar.xCoord < g.lvl.ExitX+50+playerChar.view.xCoord ||
-				playerChar.xCoord+playerCharWidth > g.lvl.ExitX+playerChar.view.xCoord && playerChar.xCoord+playerCharWidth < g.lvl.ExitX+50+playerChar.view.xCoord) &&
-			(playerChar.yCoord > g.lvl.ExitY+playerChar.view.yCoord && playerChar.yCoord < g.lvl.ExitY+100+playerChar.view.yCoord ||
-				playerChar.yCoord+playerCharHeight > g.lvl.ExitY+playerChar.view.yCoord && playerChar.yCoord+playerCharHeight < g.lvl.ExitY+100+playerChar.view.yCoord) {
+			playerBox.Overlaps(image.Rect(g.lvl.ExitX+playerChar.view.xCoord, g.lvl.ExitY+playerChar.view.yCoord,
+				g.lvl.ExitX+portalWidth+playerChar.view.xCoord, g.lvl.ExitY+portalHeight+playerChar.view.yCoord)) {
 			g.lvl.Complete = true
 			g.portalGem = false
 			clearLevel()
@@ -432,28 +396,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
 		cx, cy := currentFrame*playerCharWidth, playerChar.facing
 		screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
-		for _, l := range levelMap {
-			for i, t := range l {
-				switch {
-				case t == 2:
-					if g.portalGem == true {
-						top := &ebiten.DrawImageOptions{}
-						top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
-						px := portalFrame * 100
-						blank.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
-					}
-				case t == 3:
-					top := &ebiten.DrawImageOptions{}
-					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
-					qx := portalGemFrame * 50
-					blank.DrawImage(portalGem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
-				}
-			}
-		}
+
 		for _, e := range enviroList {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
 			g.lvl.background.DrawImage(e.sprite, op)
+		}
+		if g.portalGem == true {
+			top := &ebiten.DrawImageOptions{}
+			top.GeoM.Translate(float64(g.lvl.ExitX), float64(g.lvl.ExitY))
+			px := portalFrame * 100
+			g.lvl.background.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
 		}
 		for _, h := range hazardList {
 			op := &ebiten.DrawImageOptions{}
@@ -470,10 +423,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		for _, t := range treasureList {
+			xOffset := (blockHW - t.width) / 2
+			yOffset := (blockHW - t.height) / 2
 			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(t.xCoord)+5, float64(t.yCoord)+5)
-			tx := treasureFrame * 40
-			screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+40, 40)).(*ebiten.Image), op)
+			op.GeoM.Translate(float64(t.xCoord+xOffset), float64(t.yCoord+yOffset))
+			tx := t.frame * t.width
+			screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+t.width, t.height)).(*ebiten.Image), op)
 		}
 
 		gx := 0
@@ -502,8 +457,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.txtRenderer.Draw(pointsCt, 160, 16)
 
 	}
-	//	msg := ""
-	//	ebitenutil.DebugPrint(screen, msg)
+	// msg := ""
+	// ebitenutil.DebugPrint(screen, msg)
 }
 
 // Layout controls the game window and scaling. It is part of the main game loop in Ebitengine.

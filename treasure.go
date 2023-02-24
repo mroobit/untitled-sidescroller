@@ -15,30 +15,33 @@ var (
 	portalGemFrame      = 2
 	portalGemFrameCount = 5
 
-	treasureType map[int]*TreasureTemplate
-	treasureList []*Treasure
+	treasureTypeList map[int]*TreasureType
+	treasureList     []*Treasure
 )
 
 func initializeTreasures() {
-	treasureType = map[int]*TreasureTemplate{
-		4: {"treasure", shinyGreenBall, 10},
+	treasureTypeList = map[int]*TreasureType{
+		3: {"Portal Gem", portalGem, 50, 50, 0, 0, 5},
+		4: {"Shiny Green Ball", shinyGreenBall, 40, 40, 10, 0, 7},
 	}
 }
 
-// TreasureTemplate holds general description for a specific type of treasure
-type TreasureTemplate struct {
-	name   string
-	sprite *ebiten.Image
-	value  int
+// TreasureType holds general description for a specific type of treasure
+type TreasureType struct {
+	name    string
+	sprite  *ebiten.Image
+	width   int
+	height  int
+	value   int
+	frame   int
+	frameCt int
 }
 
 // Treasure describes a specific treasure object in a level
 type Treasure struct {
-	name      string
-	sprite    *ebiten.Image
+	*TreasureType
 	xCoord    int
 	yCoord    int
-	value     int
 	collected bool
 }
 
@@ -46,12 +49,10 @@ type Treasure struct {
 func NewTreasure(id int, x int, y int) *Treasure {
 	log.Printf("Creating new treasure")
 	treasure := &Treasure{
-		name:      treasureType[id].name,
-		sprite:    treasureType[id].sprite,
-		xCoord:    x,
-		yCoord:    y,
-		value:     treasureType[id].value,
-		collected: false,
+		treasureTypeList[id],
+		x,
+		y,
+		false,
 	}
 	return treasure
 }

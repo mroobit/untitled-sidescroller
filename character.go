@@ -16,6 +16,8 @@ var (
 
 	worldPlayerView *Viewer
 	worldPlayer     *WorldChar
+	worldCharWidth  = 48
+	worldCharHeight = 48
 
 	defaultFrame = 2
 	currentFrame = defaultFrame

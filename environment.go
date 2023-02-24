@@ -6,6 +6,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const (
+	blockHW      = 50
+	portalWidth  = 100
+	portalHeight = 150
+)
+
 var (
 	brick  *ebiten.Image
 	hazard *ebiten.Image
