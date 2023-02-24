@@ -312,6 +312,15 @@ func (g *Game) Update() error {
 			}
 		}
 
+		for _, c := range creatureList {
+			creatureBox := image.Rect(c.xCoord, c.yCoord, c.xCoord+50, c.yCoord+50)
+			if playerBox.Overlaps(creatureBox) {
+				playerChar.death()
+				clearLevel()
+				g.mode = World
+			}
+		}
+
 		if g.portalGem &&
 			playerBox.Overlaps(image.Rect(g.lvl.ExitX+playerChar.view.xCoord, g.lvl.ExitY+playerChar.view.yCoord,
 				g.lvl.ExitX+portalWidth+playerChar.view.xCoord, g.lvl.ExitY+portalHeight+playerChar.view.yCoord)) {
