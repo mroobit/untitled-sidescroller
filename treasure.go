@@ -21,7 +21,8 @@ var (
 
 func initializeTreasures() {
 	treasureType = map[int]*TreasureTemplate{
-		4: {"treasure", shinyGreenBall, 10},
+		3: {"Portal Gem", portalGem, 0, 50, 50},
+		4: {"Shiny Green Ball", shinyGreenBall, 10, 40, 40},
 	}
 }
 
@@ -30,6 +31,8 @@ type TreasureTemplate struct {
 	name   string
 	sprite *ebiten.Image
 	value  int
+	width  int
+	height int
 }
 
 // Treasure describes a specific treasure object in a level
@@ -38,8 +41,11 @@ type Treasure struct {
 	sprite    *ebiten.Image
 	xCoord    int
 	yCoord    int
+	width     int
+	height    int
 	value     int
 	collected bool
+	frame     int
 }
 
 // NewTreasure creates a new Treasure object at specific coordinates in a level
@@ -50,6 +56,8 @@ func NewTreasure(id int, x int, y int) *Treasure {
 		sprite:    treasureType[id].sprite,
 		xCoord:    x,
 		yCoord:    y,
+		width:     treasureType[id].width,
+		height:    treasureType[id].height,
 		value:     treasureType[id].value,
 		collected: false,
 	}
