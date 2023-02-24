@@ -290,6 +290,16 @@ func (g *Game) Update() error {
 			playerChar.status = "fall"
 		}
 
+		playerBox := image.Rect(playerChar.xCoord, playerChar.yCoord, playerChar.xCoord+playerCharWidth, playerChar.yCoord+playerCharWidth)
+
+		for i, t := range treasureList {
+			treasureBox := image.Rect(t.xCoord, t.yCoord, t.xCoord+50, t.yCoord+50)
+			if playerBox.Overlaps(treasureBox) {
+				g.score += t.value
+				treasureList = append(treasureList[0:i], treasureList[i+1:]...)
+			}
+		}
+
 		blockTopLeft := playerCharTop*tileXCount + playerCharLeft
 		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft] + levelMap[1][blockTopLeft]
 		blockTopRight := playerCharTop*tileXCount + playerCharRight
@@ -310,48 +320,24 @@ func (g *Game) Update() error {
 			//g.retryLevel()
 
 		}
-		if btlVal == 3 || btlVal == 4 {
-			switch {
-			case btlVal == 3:
-				g.portalGem = true
-				levelMap[4][blockTopLeft] = 0
-			case btlVal == 4:
-				g.score += 10
-				levelMap[3][blockTopLeft] = 0
-			}
+		if btlVal == 3 {
+			g.portalGem = true
+			levelMap[4][blockTopLeft] = 0
 			blank.Clear()
 		}
-		if btrVal == 3 || btrVal == 4 {
-			switch {
-			case btrVal == 3:
-				g.portalGem = true
-				levelMap[4][blockTopRight] = 0
-			case btrVal == 4:
-				g.score += 10
-				levelMap[3][blockTopRight] = 0
-			}
+		if btrVal == 3 {
+			g.portalGem = true
+			levelMap[4][blockTopRight] = 0
 			blank.Clear()
 		}
-		if bblVal == 3 || bblVal == 4 {
-			switch {
-			case bblVal == 3:
-				g.portalGem = true
-				levelMap[4][blockBaseLeft] = 0
-			case bblVal == 4:
-				g.score += 10
-				levelMap[3][blockBaseLeft] = 0
-			}
+		if bblVal == 3 {
+			g.portalGem = true
+			levelMap[4][blockBaseLeft] = 0
 			blank.Clear()
 		}
-		if bbrVal == 3 || bbrVal == 4 {
-			switch {
-			case bbrVal == 3:
-				g.portalGem = true
-				levelMap[4][blockBaseRight] = 0
-			case bbrVal == 4:
-				g.score += 10
-				levelMap[3][blockBaseRight] = 0
-			}
+		if bbrVal == 3 {
+			g.portalGem = true
+			levelMap[4][blockBaseRight] = 0
 			blank.Clear()
 		}
 
