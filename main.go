@@ -164,12 +164,11 @@ func (g *Game) Update() error {
 		if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
 			worldPlayer.navDown(radiusCheck)
 		}
+
+		worldPlayerBox := image.Rect(worldPlayer.xCoord, worldPlayer.yCoord, worldPlayer.xCoord+worldCharWidth, worldPlayer.yCoord+worldCharHeight)
 		// locations of levels on World, checking whether conditions are met to enter the level
 		for _, l := range levelData {
-			if ((worldPlayer.xCoord > l.WorldX+worldPlayer.view.xCoord && worldPlayer.xCoord < l.WorldX+150+worldPlayer.view.xCoord ||
-				worldPlayer.xCoord+playerCharWidth > l.WorldX+worldPlayer.view.xCoord && worldPlayer.xCoord+playerCharWidth < l.WorldX+150+worldPlayer.view.xCoord) &&
-				(worldPlayer.yCoord > l.WorldY+worldPlayer.view.yCoord && worldPlayer.yCoord < l.WorldY+150+worldPlayer.view.yCoord ||
-					worldPlayer.yCoord+playerCharHeight > l.WorldY+worldPlayer.view.yCoord && worldPlayer.yCoord+playerCharHeight < l.WorldY+150+worldPlayer.view.yCoord)) &&
+			if worldPlayerBox.Overlaps(image.Rect(l.WorldX+worldPlayer.view.xCoord, l.WorldY+worldPlayer.view.yCoord, l.WorldX+worldPlayer.view.xCoord+150, l.WorldY+worldPlayer.view.yCoord+150)) &&
 				ebiten.IsKeyPressed(ebiten.KeyEnter) &&
 				l.Complete == false {
 
