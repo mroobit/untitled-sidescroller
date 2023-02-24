@@ -314,10 +314,8 @@ func (g *Game) Update() error {
 		}
 
 		if g.portalGem &&
-			(playerChar.xCoord > g.lvl.ExitX+playerChar.view.xCoord && playerChar.xCoord < g.lvl.ExitX+50+playerChar.view.xCoord ||
-				playerChar.xCoord+playerCharWidth > g.lvl.ExitX+playerChar.view.xCoord && playerChar.xCoord+playerCharWidth < g.lvl.ExitX+50+playerChar.view.xCoord) &&
-			(playerChar.yCoord > g.lvl.ExitY+playerChar.view.yCoord && playerChar.yCoord < g.lvl.ExitY+100+playerChar.view.yCoord ||
-				playerChar.yCoord+playerCharHeight > g.lvl.ExitY+playerChar.view.yCoord && playerChar.yCoord+playerCharHeight < g.lvl.ExitY+100+playerChar.view.yCoord) {
+			playerBox.Overlaps(image.Rect(g.lvl.ExitX+playerChar.view.xCoord, g.lvl.ExitY+playerChar.view.yCoord,
+				g.lvl.ExitX+portalWidth+playerChar.view.xCoord, g.lvl.ExitY+portalHeight+playerChar.view.yCoord)) {
 			g.lvl.Complete = true
 			g.portalGem = false
 			clearLevel()
