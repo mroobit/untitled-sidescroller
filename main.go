@@ -261,7 +261,6 @@ func (g *Game) Update() error {
 				}
 			}
 		}
-		playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
 		playerCharBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
 		playerCharLeft := (playerChar.xCoord - playerChar.view.xCoord) / 50
 		playerCharRight := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth) / 50
@@ -283,6 +282,7 @@ func (g *Game) Update() error {
 				playerChar.yCoord += 3
 			}
 		}
+
 		playerCharFreshBase := (playerChar.yCoord - playerChar.view.yCoord + playerCharHeight + 1) / 50 // checks immediately BELOW base of sprite
 		if levelMap[0][(playerCharFreshBase*tileXCount)+playerCharLeft] == 1 || levelMap[0][(playerCharFreshBase*tileXCount)+playerCharRight] == 1 {
 			playerChar.status = "ground"
@@ -296,49 +296,20 @@ func (g *Game) Update() error {
 			treasureBox := image.Rect(t.xCoord, t.yCoord, t.xCoord+50, t.yCoord+50)
 			if playerBox.Overlaps(treasureBox) {
 				g.score += t.value
+				if t.name == "Portal Gem" {
+					g.portalGem = true
+				}
 				treasureList = append(treasureList[0:i], treasureList[i+1:]...)
 			}
 		}
 
-		blockTopLeft := playerCharTop*tileXCount + playerCharLeft
-		btlVal := levelMap[3][blockTopLeft] + levelMap[4][blockTopLeft] + levelMap[1][blockTopLeft]
-		blockTopRight := playerCharTop*tileXCount + playerCharRight
-		btrVal := levelMap[3][blockTopRight] + levelMap[4][blockTopRight] + levelMap[1][blockTopRight]
-		blockBaseLeft := playerCharBase*tileXCount + playerCharLeft
-		bblVal := levelMap[3][blockBaseLeft] + levelMap[4][blockBaseLeft] + levelMap[1][blockBaseLeft]
-		blockBaseRight := playerCharBase*tileXCount + playerCharRight
-		bbrVal := levelMap[3][blockBaseRight] + levelMap[4][blockBaseRight] + levelMap[1][blockBaseRight]
-		if btlVal == 5 || bblVal == 5 || btrVal == 5 || bbrVal == 5 {
-			playerChar.death()
-			clearLevel()
-			if playerChar.lives == 0 {
-				log.Printf("Game over, no lives left")
-				//g.over()
+		for _, h := range hazardList {
+			hazardBox := image.Rect(h.xCoord, h.yCoord, h.xCoord+50, h.yCoord+50)
+			if playerBox.Overlaps(hazardBox) {
+				playerChar.death()
+				clearLevel()
+				g.mode = World
 			}
-			log.Printf("Retry Level or return to world map?")
-			g.mode = World
-			//g.retryLevel()
-
-		}
-		if btlVal == 3 {
-			g.portalGem = true
-			levelMap[4][blockTopLeft] = 0
-			blank.Clear()
-		}
-		if btrVal == 3 {
-			g.portalGem = true
-			levelMap[4][blockTopRight] = 0
-			blank.Clear()
-		}
-		if bblVal == 3 {
-			g.portalGem = true
-			levelMap[4][blockBaseLeft] = 0
-			blank.Clear()
-		}
-		if bbrVal == 3 {
-			g.portalGem = true
-			levelMap[4][blockBaseRight] = 0
-			blank.Clear()
 		}
 
 		if g.portalGem &&
@@ -428,11 +399,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 						px := portalFrame * 100
 						blank.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
 					}
-				case t == 3:
-					top := &ebiten.DrawImageOptions{}
-					top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
-					qx := portalGemFrame * 50
-					blank.DrawImage(portalGem.SubImage(image.Rect(qx, 0, qx+50, 50)).(*ebiten.Image), top)
 				}
 			}
 		}
@@ -456,10 +422,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		for _, t := range treasureList {
+			yOffset := (blockHW - t.width) / 2
+			xOffset := (blockHW - t.height) / 2
 			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(t.xCoord)+5, float64(t.yCoord)+5)
-			tx := treasureFrame * 40
-			screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+40, 40)).(*ebiten.Image), op)
+			op.GeoM.Translate(float64(t.xCoord+xOffset), float64(t.yCoord+yOffset))
+			tx := treasureFrame * t.width
+			screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+t.width, t.height)).(*ebiten.Image), op)
 		}
 
 		gx := 0
