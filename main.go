@@ -32,6 +32,7 @@ var (
 	// FileSystem of images, fonts
 	//go:embed imgs
 	//go:embed fonts
+	//go:embed levels.json
 	FileSystem embed.FS
 
 	ebitengineSplash *ebiten.Image

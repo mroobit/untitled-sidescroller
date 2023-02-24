@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"image/color"
 	"image/png"
-	"io/ioutil"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -74,7 +73,7 @@ func loadAssets() {
 		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
 	}
 
-	lvlContent, err := ioutil.ReadFile("./levels.json")
+	lvlContent, err := FileSystem.ReadFile("levels.json")
 	if err != nil {
 		log.Fatal("Error when opening file: ", err)
 	}
