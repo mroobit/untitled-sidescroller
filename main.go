@@ -342,8 +342,6 @@ func (g *Game) Update() error {
 
 // Draw contains all code for drawing images to screen. It is part of the main game loop in Ebitengine.
 func (g *Game) Draw(screen *ebiten.Image) {
-	treasureMsg := ""
-
 	switch g.mode {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
@@ -392,23 +390,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
 		cx, cy := currentFrame*playerCharWidth, playerChar.facing
 		screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
-		for _, l := range levelMap {
-			for i, t := range l {
-				switch {
-				case t == 2:
-					if g.portalGem == true {
-						top := &ebiten.DrawImageOptions{}
-						top.GeoM.Translate(float64((i%tileXCount)*tileSize), float64(i/tileXCount*tileSize))
-						px := portalFrame * 100
-						blank.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
-					}
-				}
-			}
-		}
+
 		for _, e := range enviroList {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
 			g.lvl.background.DrawImage(e.sprite, op)
+		}
+		if g.portalGem == true {
+			top := &ebiten.DrawImageOptions{}
+			top.GeoM.Translate(float64(g.lvl.ExitX), float64(g.lvl.ExitY))
+			px := portalFrame * 100
+			g.lvl.background.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
 		}
 		for _, h := range hazardList {
 			op := &ebiten.DrawImageOptions{}
