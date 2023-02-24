@@ -186,10 +186,11 @@ func (g *Game) Update() error {
 	case Play:
 		// sprite frames for different things -- handle differently later
 		portalFrame = (g.count / 5) % portalFrameCount
-		treasureFrame = (g.count / 5) % treasureFrameCount
-		portalGemFrame = (g.count / 5) % portalGemFrameCount
 		hazardFrame = (g.count / 5) % hazardFrameCount
 		creatureFrame = (g.count / 5) % creatureFrameCount
+
+		treasureTypeList[3].frame = (g.count / 5) % treasureTypeList[3].frameCt
+		treasureTypeList[4].frame = (g.count / 5) % treasureTypeList[4].frameCt
 
 		// player sprite frame reset
 		if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) || inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
@@ -341,6 +342,8 @@ func (g *Game) Update() error {
 
 // Draw contains all code for drawing images to screen. It is part of the main game loop in Ebitengine.
 func (g *Game) Draw(screen *ebiten.Image) {
+	treasureMsg := ""
+
 	switch g.mode {
 	case Load:
 		op := &ebiten.DrawImageOptions{}
@@ -422,11 +425,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		for _, t := range treasureList {
-			yOffset := (blockHW - t.width) / 2
-			xOffset := (blockHW - t.height) / 2
+			xOffset := (blockHW - t.width) / 2
+			yOffset := (blockHW - t.height) / 2
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(t.xCoord+xOffset), float64(t.yCoord+yOffset))
-			tx := treasureFrame * t.width
+			tx := t.frame * t.width
 			screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+t.width, t.height)).(*ebiten.Image), op)
 		}
 
@@ -456,8 +459,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.txtRenderer.Draw(pointsCt, 160, 16)
 
 	}
-	//	msg := ""
-	//	ebitenutil.DebugPrint(screen, msg)
+	// msg := ""
+	// ebitenutil.DebugPrint(screen, msg)
 }
 
 // Layout controls the game window and scaling. It is part of the main game loop in Ebitengine.
