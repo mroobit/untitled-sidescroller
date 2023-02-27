@@ -7,10 +7,8 @@ import (
 	"image"
 	"log"
 	"math"
-	"math/rand"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -44,7 +42,6 @@ var (
 
 	world *ebiten.Image
 
-	blank           *ebiten.Image
 	gameOverMessage *ebiten.Image
 )
 
@@ -58,7 +55,6 @@ func init() {
 		log.SetOutput(f)
 		log.Printf("Initializing...")
 	*/
-	rand.Seed(time.Now().UnixNano())
 	loadAssets()
 	initializeTreasures()
 	// if savefiles available, create *Menu of savefiles to choose from
@@ -391,7 +387,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		lvlOp := &ebiten.DrawImageOptions{}
 		lvlOp.GeoM.Translate(float64(playerChar.view.xCoord), float64(playerChar.view.yCoord))
 		screen.DrawImage(g.lvl.background, lvlOp)
-		screen.DrawImage(blank, lvlOp)
 		mOp := &ebiten.DrawImageOptions{}
 		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
 		cx, cy := currentFrame*playerCharWidth, playerChar.facing

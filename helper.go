@@ -65,7 +65,6 @@ func loadAssets() {
 	portalGem = loadImage(FileSystem, "imgs/quest-item--test.png")
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
 	creature = loadImage(FileSystem, "imgs/creature--test.png")
-	blank = loadImage(FileSystem, "imgs/blank-bg.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
 	levelImages := map[string][]*ebiten.Image{
@@ -105,23 +104,3 @@ func loadImage(fs embed.FS, path string) *ebiten.Image {
 	loadedImg := ebiten.NewImageFromImage(img)
 	return loadedImg
 }
-
-/*
-func init() {
-	fontFile, err := FileSystem.Open("fonts/mplus-1p-regular.ttf")
-	if err != nil {
-		log.Fatalf("Error opening font: %v\n", err)
-	}
-	tt, err := opentype.Parse(fontFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	const dpi = 72
-	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    24,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
-}
-*/

@@ -10,11 +10,6 @@ var (
 	shinyGreenBall *ebiten.Image
 	portalGem      *ebiten.Image
 
-	treasureFrame       = 2
-	treasureFrameCount  = 7
-	portalGemFrame      = 2
-	portalGemFrameCount = 5
-
 	treasureTypeList map[int]*TreasureType
 	treasureList     []*Treasure
 )
