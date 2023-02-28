@@ -21,8 +21,7 @@ var (
 	textColor color.RGBA
 )
 
-func init() {
-
+func loadFonts() {
 	log.Printf("Creating new font library")
 	fontLib = etxt.NewFontLibrary()
 

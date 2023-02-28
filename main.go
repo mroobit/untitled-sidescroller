@@ -45,7 +45,8 @@ var (
 	gameOverMessage *ebiten.Image
 )
 
-func init() {
+// main sets up game and runs it, or returns error
+func main() {
 	/*
 		f, err := os.OpenFile("game.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
@@ -53,20 +54,16 @@ func init() {
 		}
 		defer f.Close()
 		log.SetOutput(f)
-		log.Printf("Initializing...")
 	*/
+
+	log.Printf("Starting up game...")
+
+	loadFonts()
 	loadAssets()
 	initializeTreasures()
 	// if savefiles available, create *Menu of savefiles to choose from
 	// for items in savefile location, add to slice
 	// loadMenu = NewMenu(saveitemsslice)
-
-}
-
-// main sets up game and runs it, or returns error
-func main() {
-
-	log.Printf("Starting up game...")
 
 	ebiten.SetWindowSize(winWidth, winHeight)
 	ebiten.SetWindowTitle("A Pixely Side-Scrolling Game Send-up")
@@ -86,6 +83,7 @@ type Game struct {
 	mainMenu    *Menu
 	txtRenderer *etxt.Renderer
 	count       int
+	timer       int
 	lvl         *LevelData
 	portalGem   bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
 	score       int
@@ -303,8 +301,8 @@ func (g *Game) Update() error {
 			hazardBox := image.Rect(h.xCoord, h.yCoord, h.xCoord+50, h.yCoord+50)
 			if playerBox.Overlaps(hazardBox) {
 				playerChar.death()
-				clearLevel()
-				g.mode = World
+				g.mode = Pause
+				g.timer = 30
 			}
 		}
 
@@ -312,8 +310,8 @@ func (g *Game) Update() error {
 			creatureBox := image.Rect(c.xCoord, c.yCoord, c.xCoord+50, c.yCoord+50)
 			if playerBox.Overlaps(creatureBox) {
 				playerChar.death()
-				clearLevel()
-				g.mode = World
+				g.mode = Pause
+				g.timer = 20
 			}
 		}
 
@@ -335,8 +333,26 @@ func (g *Game) Update() error {
 			g.mode = Pause
 		}
 	case Pause:
-		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
-			g.mode = Play
+		switch {
+		case playerChar.status == "totally dead":
+			if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+				g.mode = Title
+				playerChar.status = "ground"
+			}
+		case playerChar.status == "dying" && g.timer <= 0:
+			if playerChar.lives <= 0 {
+				playerChar.status = "totally dead"
+			}
+			if playerChar.lives > 0 {
+				clearLevel()
+				g.mode = World
+			}
+		case playerChar.status == "dying" && g.timer > 0:
+			g.timer--
+		default:
+			if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+				g.mode = Play
+			}
 		}
 	}
 	return nil
@@ -379,18 +395,30 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(float64(worldPlayer.xCoord), float64(worldPlayer.yCoord))
 		screen.DrawImage(worldPlayer.sprite.SubImage(image.Rect(0, 0, 50, 50)).(*ebiten.Image), op)
 
-		if playerChar.lives <= 0 {
-			overOp := &ebiten.DrawImageOptions{}
-			screen.DrawImage(gameOverMessage, overOp)
-		}
 	case Play, Pause:
 		lvlOp := &ebiten.DrawImageOptions{}
 		lvlOp.GeoM.Translate(float64(playerChar.view.xCoord), float64(playerChar.view.yCoord))
 		screen.DrawImage(g.lvl.background, lvlOp)
-		mOp := &ebiten.DrawImageOptions{}
-		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
-		cx, cy := currentFrame*playerCharWidth, playerChar.facing
-		screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
+
+		switch {
+		case playerChar.status == "dying":
+			mOp := &ebiten.DrawImageOptions{}
+			for i := 0; i < playerCharHeight; i += playerCharHeight / 8 {
+				wobble := 30 - g.timer
+				if i%12 == 0 {
+					wobble *= -1
+				}
+				mOp.GeoM.Reset()
+				mOp.GeoM.Translate(float64(playerChar.xCoord+wobble), float64(playerChar.yCoord+i))
+				cx, cy := currentFrame*playerCharWidth, playerChar.facing
+				screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy+i, cx+playerCharWidth, cy+i+6)).(*ebiten.Image), mOp)
+			}
+		default:
+			mOp := &ebiten.DrawImageOptions{}
+			mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
+			cx, cy := currentFrame*playerCharWidth, playerChar.facing
+			screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
+		}
 
 		for _, e := range enviroList {
 			op := &ebiten.DrawImageOptions{}
@@ -450,6 +478,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.txtRenderer.SetColor(scoreDisplayColor)
 		g.txtRenderer.SetAlign(etxt.Top, etxt.Right)
 		g.txtRenderer.Draw(pointsCt, 160, 16)
+
+		if playerChar.status == "totally dead" {
+			overOp := &ebiten.DrawImageOptions{}
+			screen.DrawImage(gameOverMessage, overOp)
+		}
 
 	}
 	// msg := ""

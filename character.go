@@ -166,7 +166,7 @@ func (c *Character) jump(duration int) { // strength is keypress duration
 func (c *Character) death() {
 	c.hpCurrent = 0
 	c.lives--
-	// initiate character death animation
+	c.status = "dying"
 }
 
 func (w *WorldChar) navRight(radiusCheck float64) {
