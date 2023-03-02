@@ -18,9 +18,13 @@ type MenuItem struct {
 }
 
 var (
-	menuItems = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
-	mainMenu  *Menu
+	mainMenuItems = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
+	mainMenu      *Menu
 )
+
+func initializeMenus() {
+	mainMenu = NewMenu(mainMenuItems)
+}
 
 // NewMenu creates a Menu from a slice of select
 func NewMenu(items []string) *Menu {
@@ -67,7 +71,7 @@ func (m *Menu) Prev() {
 }
 
 // Select changes game mode according to active MenuItem selected
-func (m *Menu) Select() (Mode, error) {
+func (m *Menu) Select() (string, error) {
 	log.Printf("Selecting an Item")
 	switch {
 	case m.active.option == "New Game":
@@ -83,7 +87,7 @@ func (m *Menu) Select() (Mode, error) {
 		// Initialize SaveData with character name
 		saveData := NewSaveData()
 		saveData.Initialize("Mona")
-		return World, nil
+		return "World", nil
 	case m.active.option == "Load Game":
 		log.Printf("Loading Game -- not yet implemented")
 		//TODO
@@ -93,18 +97,18 @@ func (m *Menu) Select() (Mode, error) {
 		// saveData := NewSaveData()
 		// saveData.Load(savefile)
 		// return World, nil
-		return Title, nil
+		return "Title", nil
 	case m.active.option == "How To Play":
 		//TODO
 		log.Printf("Display Instructions -- not yet implemented")
-		return Title, nil
+		return "Title", nil
 	case m.active.option == "Credits":
 		//TODO
 		log.Printf("Display Credits -- not yet implemented")
-		return Title, nil
+		return "Title", nil
 	case m.active.option == "Exit":
 		log.Printf("Attempting to Exit Game")
-		return Title, ErrExit
+		return "Title", ErrExit
 	}
-	return Title, nil
+	return "Title", nil
 }

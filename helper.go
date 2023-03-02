@@ -21,6 +21,20 @@ var (
 	textColor color.RGBA
 )
 
+var (
+	ebitengineSplash *ebiten.Image
+	splashImages     []*ebiten.Image
+
+	gemCt      *ebiten.Image
+	livesCt    *ebiten.Image
+	messageBox *ebiten.Image
+	statsBox   *ebiten.Image
+
+	world *ebiten.Image
+
+	gameOverMessage *ebiten.Image
+)
+
 func loadFonts() {
 	log.Printf("Creating new font library")
 	fontLib = etxt.NewFontLibrary()
@@ -50,6 +64,7 @@ func loadAssets() {
 	backgroundYikesfulMountain = loadImage(FileSystem, "imgs/level-background-2--test.png")
 
 	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")
+	splashImages = append(splashImages, ebitengineSplash)
 
 	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
 
