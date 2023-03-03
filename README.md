@@ -11,7 +11,7 @@ All artwork are rough stand-ins (I'm learning how to make pixel art alongside bu
 ## Minimum Demo
 - [x] Modes for Load, Main Menu, World Map, and Playable Level
 - [x] Main Menu
-- [ ] Save Files
+- [x] Save Files
 
 **Playable Level**
 - [x] Player Movement (L/R, Jump)
@@ -48,7 +48,7 @@ All artwork are rough stand-ins (I'm learning how to make pixel art alongside bu
 
 **Main Menu**
 - [x] Start New Game
-- [ ] Load Game
+- [x] Load Game
 - [ ] Settings
 - [ ] Acknowledgements/Credits
 - [x] Exit
