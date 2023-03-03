@@ -2,10 +2,10 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"image/color"
 	"image/png"
 	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/tinne26/etxt"
@@ -16,9 +16,27 @@ var (
 
 	menuColorActive   = color.RGBA{140, 50, 90, 255}
 	menuColorInactive = color.RGBA{0xff, 0xff, 0xff, 255}
+	menuColorDisabled = color.RGBA{60, 60, 60, 255}
 	scoreDisplayColor = color.RGBA{0, 0, 0, 255}
 
 	textColor color.RGBA
+)
+
+var (
+	loaded = false
+
+	ebitengineSplash *ebiten.Image
+	splashImages     []*ebiten.Image
+	levelImages      map[string][]*ebiten.Image
+
+	gemCt      *ebiten.Image
+	livesCt    *ebiten.Image
+	messageBox *ebiten.Image
+	statsBox   *ebiten.Image
+
+	world *ebiten.Image
+
+	gameOverMessage *ebiten.Image
 )
 
 func loadFonts() {
@@ -32,7 +50,7 @@ func loadFonts() {
 }
 
 func newRenderer() *etxt.Renderer {
-	log.Printf("Creating new text renderer")
+	log.Printf("...creating new text renderer")
 	renderer := etxt.NewStdRenderer()
 	glyphsCache := etxt.NewDefaultCache(10 * 1024 * 1024) // 10MB
 	renderer.SetCacheHandler(glyphsCache.NewHandler())
@@ -43,6 +61,7 @@ func newRenderer() *etxt.Renderer {
 }
 
 func loadAssets() {
+	log.Printf("Loading Images...")
 	world = loadImage(FileSystem, "imgs/world--test.png")
 	gooAlley = loadImage(FileSystem, "imgs/goo-alley--test.png")
 	yikesfulMountain = loadImage(FileSystem, "imgs/yikesful-mountain--test.png")
@@ -50,6 +69,7 @@ func loadAssets() {
 	backgroundYikesfulMountain = loadImage(FileSystem, "imgs/level-background-2--test.png")
 
 	ebitengineSplash = loadImage(FileSystem, "imgs/load-ebitengine-splash.png")
+	splashImages = append(splashImages, ebitengineSplash)
 
 	spriteSheet = loadImage(FileSystem, "imgs/walk-test--2023-01-03--lr.png")
 
@@ -66,30 +86,29 @@ func loadAssets() {
 	creature = loadImage(FileSystem, "imgs/creature--test.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
-	levelImages := map[string][]*ebiten.Image{
+	levelImages = map[string][]*ebiten.Image{
 		"Goo Alley":         {gooAlley, levelBG},
 		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
 	}
+}
 
-	lvlContent, err := FileSystem.ReadFile("levels.json")
+func findSaveFiles() []string {
+	saveFiles := []string{}
+	files, err := os.ReadDir("./save/")
 	if err != nil {
-		log.Fatal("Error when opening file: ", err)
+		log.Fatal(err)
 	}
-
-	err = json.Unmarshal(lvlContent, &levelData)
-	if err != nil {
-		log.Fatal("Error during Unmarshalling: ", err)
+	for _, item := range files {
+		if string(item.Name()) != "levels.json" {
+			saveFiles = append(saveFiles, string(item.Name()))
+		}
 	}
-
-	for _, l := range levelData {
-		l.icon = levelImages[l.Name][0]
-		l.background = levelImages[l.Name][1]
-	}
-
+	saveFiles = append(saveFiles, "Main Menu")
+	return saveFiles
 }
 
 func loadImage(fs embed.FS, path string) *ebiten.Image {
-	log.Printf("Loading %s", path)
+	log.Printf(" %s", path)
 	rawFile, err := fs.Open(path)
 	if err != nil {
 		log.Fatalf("Error opening file %s: %v\n", path, err)

@@ -18,11 +18,21 @@ type MenuItem struct {
 }
 
 var (
-	menuItems = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
-	mainMenu  *Menu
+	mainMenuItems  = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
+	worldMenuItems = []string{"Save", "Stats", "Main Menu", "Quit"}
+	loadMenuItems  []string
+	mainMenu       *Menu
+	worldMenu      *Menu
+	loadMenu       *Menu
 )
 
-// NewMenu creates a Menu from a slice of select
+func initializeMenus() {
+	mainMenu = NewMenu(mainMenuItems)
+	worldMenu = NewMenu(worldMenuItems)
+	loadMenu = NewMenu(loadMenuItems)
+}
+
+// NewMenu creates a Menu from a slice of strings
 func NewMenu(items []string) *Menu {
 	menu := &Menu{}
 	for _, v := range items {
@@ -67,44 +77,7 @@ func (m *Menu) Prev() {
 }
 
 // Select changes game mode according to active MenuItem selected
-func (m *Menu) Select() (Mode, error) {
-	log.Printf("Selecting an Item")
-	switch {
-	case m.active.option == "New Game":
-		log.Printf("Starting New Game")
-		// prompt for character name
-		// create character with provided name
-		playerView = NewViewer()
-		worldPlayerView = NewViewer()
-
-		playerChar = NewCharacter("Mona", spriteSheet, playerView, 100)
-		worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
-
-		// Initialize SaveData with character name
-		saveData := NewSaveData()
-		saveData.Initialize("Mona")
-		return World, nil
-	case m.active.option == "Load Game":
-		log.Printf("Loading Game -- not yet implemented")
-		//TODO
-		// display save files available
-		// selectable-menu
-		// on selection [Enter],
-		// saveData := NewSaveData()
-		// saveData.Load(savefile)
-		// return World, nil
-		return Title, nil
-	case m.active.option == "How To Play":
-		//TODO
-		log.Printf("Display Instructions -- not yet implemented")
-		return Title, nil
-	case m.active.option == "Credits":
-		//TODO
-		log.Printf("Display Credits -- not yet implemented")
-		return Title, nil
-	case m.active.option == "Exit":
-		log.Printf("Attempting to Exit Game")
-		return Title, ErrExit
-	}
-	return Title, nil
+func (m *Menu) Select() string {
+	log.Printf("Selecting " + m.active.option)
+	return m.active.option
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -8,8 +10,7 @@ var (
 	levelWidth  int
 	levelHeight int
 
-	levelData []*LevelData
-	levelMap  [][]int
+	levelMap [][]int
 
 	tileSize   = 50
 	tileXCount = 16
@@ -76,6 +77,7 @@ func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index nu
 }
 
 func clearLevel() { // clear out all hazards, creatures from drawing lists
+	log.Printf("Clearing level")
 	enviroList = []*Brick{}
 	hazardList = []*Hazard{}
 	creatureList = []*Creature{}
