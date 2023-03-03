@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"encoding/json"
 	"image"
 	"log"
 	"math"
@@ -42,6 +44,7 @@ func (t *Title) Update(g *Game) error {
 		if err != nil {
 			return err
 		}
+
 		g.mode = selection
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
@@ -74,7 +77,34 @@ func (t *Title) Draw(screen *ebiten.Image, g *Game) {
 
 type World struct {
 	menu   *Menu
-	levels *LevelData
+	levels []*LevelData
+}
+
+func NewWorld() *World {
+	world := &World{
+		levels: levelList,
+	}
+	return world
+}
+
+func (w *World) Load(fs embed.FS, path string) {
+	var levels []*LevelData
+	lvlContent, err := fs.ReadFile(path)
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
+	}
+
+	err = json.Unmarshal(lvlContent, &levels)
+	if err != nil {
+		log.Fatal("Error during Unmarshalling: ", err)
+	}
+
+	for _, l := range levels {
+		l.icon = levelImages[l.Name][0]
+		l.background = levelImages[l.Name][1]
+	}
+
+	w.levels = levels
 }
 
 func (w *World) Update(g *Game) error {
@@ -103,7 +133,7 @@ func (w *World) Update(g *Game) error {
 
 	worldPlayerBox := image.Rect(worldPlayer.xCoord, worldPlayer.yCoord, worldPlayer.xCoord+worldCharWidth, worldPlayer.yCoord+worldCharHeight)
 	// locations of levels on World, checking whether conditions are met to enter the level
-	for _, l := range levelData {
+	for _, l := range w.levels {
 		if worldPlayerBox.Overlaps(image.Rect(l.WorldX+worldPlayer.view.xCoord, l.WorldY+worldPlayer.view.yCoord, l.WorldX+worldPlayer.view.xCoord+150, l.WorldY+worldPlayer.view.yCoord+150)) &&
 			ebiten.IsKeyPressed(ebiten.KeyEnter) &&
 			l.Complete == false {
@@ -113,7 +143,8 @@ func (w *World) Update(g *Game) error {
 			playerChar.setLocation(l.PlayerX, l.PlayerY)
 			playerChar.hpCurrent = playerChar.hpTotal
 			levelSetup(l, playerChar.view.xCoord, playerChar.view.yCoord)
-			g.lvl = l
+			playLevel := NewPlay(l)
+			g.state["Play"] = playLevel
 			g.portalGem = false
 			g.mode = "Play"
 		}
@@ -125,7 +156,7 @@ func (w *World) Draw(screen *ebiten.Image, g *Game) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(worldPlayer.view.xCoord), float64(worldPlayer.view.yCoord))
 	screen.DrawImage(world, op)
-	for _, l := range levelData {
+	for _, l := range w.levels {
 		lop := &ebiten.DrawImageOptions{}
 		lop.GeoM.Translate(float64(l.WorldX), float64(l.WorldY))
 		world.DrawImage(l.icon, lop)
@@ -136,6 +167,14 @@ func (w *World) Draw(screen *ebiten.Image, g *Game) {
 }
 
 type Play struct {
+	level *LevelData
+}
+
+func NewPlay(l *LevelData) *Play {
+	play := &Play{
+		level: l,
+	}
+	return play
 }
 
 func (p *Play) Update(g *Game) error {
@@ -275,14 +314,14 @@ func (p *Play) Update(g *Game) error {
 		if playerBox.Overlaps(creatureBox) {
 			playerChar.death()
 			g.mode = "Pause"
-			g.timer = 20
+			g.timer = 30
 		}
 	}
 
 	if g.portalGem &&
-		playerBox.Overlaps(image.Rect(g.lvl.ExitX+playerChar.view.xCoord, g.lvl.ExitY+playerChar.view.yCoord,
-			g.lvl.ExitX+portalWidth+playerChar.view.xCoord, g.lvl.ExitY+portalHeight+playerChar.view.yCoord)) {
-		g.lvl.Complete = true
+		playerBox.Overlaps(image.Rect(p.level.ExitX+playerChar.view.xCoord, p.level.ExitY+playerChar.view.yCoord,
+			p.level.ExitX+portalWidth+playerChar.view.xCoord, p.level.ExitY+portalHeight+playerChar.view.yCoord)) {
+		p.level.Complete = true
 		g.portalGem = false
 		clearLevel()
 		log.Print("Just hit the portal")
@@ -301,7 +340,7 @@ func (p *Play) Update(g *Game) error {
 func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	lvlOp := &ebiten.DrawImageOptions{}
 	lvlOp.GeoM.Translate(float64(playerChar.view.xCoord), float64(playerChar.view.yCoord))
-	screen.DrawImage(g.lvl.background, lvlOp)
+	screen.DrawImage(p.level.background, lvlOp)
 
 	switch {
 	case playerChar.status == "dying":
@@ -326,13 +365,13 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	for _, e := range enviroList {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
-		g.lvl.background.DrawImage(e.sprite, op)
+		p.level.background.DrawImage(e.sprite, op)
 	}
 	if g.portalGem == true {
 		top := &ebiten.DrawImageOptions{}
-		top.GeoM.Translate(float64(g.lvl.ExitX), float64(g.lvl.ExitY))
+		top.GeoM.Translate(float64(p.level.ExitX+playerChar.view.xCoord), float64(p.level.ExitY+playerChar.view.yCoord))
 		px := portalFrame * 100
-		g.lvl.background.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
+		screen.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
 	}
 	for _, h := range hazardList {
 		op := &ebiten.DrawImageOptions{}
@@ -389,6 +428,8 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 }
 
 type Pause struct {
+	message string
+	options *Menu
 }
 
 func (p *Pause) Update(g *Game) error {
@@ -396,6 +437,7 @@ func (p *Pause) Update(g *Game) error {
 	case playerChar.status == "totally dead":
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			g.mode = "Title"
+			clearLevel()
 			playerChar.status = "ground"
 		}
 	case playerChar.status == "dying" && g.timer <= 0:
@@ -417,91 +459,6 @@ func (p *Pause) Update(g *Game) error {
 }
 
 func (p *Pause) Draw(screen *ebiten.Image, g *Game) {
-	lvlOp := &ebiten.DrawImageOptions{}
-	lvlOp.GeoM.Translate(float64(playerChar.view.xCoord), float64(playerChar.view.yCoord))
-	screen.DrawImage(g.lvl.background, lvlOp)
-
-	switch {
-	case playerChar.status == "dying":
-		mOp := &ebiten.DrawImageOptions{}
-		for i := 0; i < playerCharHeight; i += playerCharHeight / 8 {
-			wobble := 30 - g.timer
-			if i%12 == 0 {
-				wobble *= -1
-			}
-			mOp.GeoM.Reset()
-			mOp.GeoM.Translate(float64(playerChar.xCoord+wobble), float64(playerChar.yCoord+i))
-			cx, cy := currentFrame*playerCharWidth, playerChar.facing
-			screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy+i, cx+playerCharWidth, cy+i+6)).(*ebiten.Image), mOp)
-		}
-	default:
-		mOp := &ebiten.DrawImageOptions{}
-		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
-		cx, cy := currentFrame*playerCharWidth, playerChar.facing
-		screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
-	}
-
-	for _, e := range enviroList {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
-		g.lvl.background.DrawImage(e.sprite, op)
-	}
-	if g.portalGem == true {
-		top := &ebiten.DrawImageOptions{}
-		top.GeoM.Translate(float64(g.lvl.ExitX), float64(g.lvl.ExitY))
-		px := portalFrame * 100
-		g.lvl.background.DrawImage(portal.SubImage(image.Rect(px, 0, px+100, 150)).(*ebiten.Image), top)
-	}
-	for _, h := range hazardList {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(h.xCoord), float64(h.yCoord))
-		hx := hazardFrame * 50
-		screen.DrawImage(h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image), op)
-	}
-
-	for _, c := range creatureList {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(c.xCoord), float64(c.yCoord))
-		cx, cy := creatureFrame*50, c.facing
-		screen.DrawImage(c.sprite.SubImage(image.Rect(cx, cy, cx+50, cy+50)).(*ebiten.Image), op)
-	}
-
-	for _, t := range treasureList {
-		xOffset := (blockHW - t.width) / 2
-		yOffset := (blockHW - t.height) / 2
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(t.xCoord+xOffset), float64(t.yCoord+yOffset))
-		tx := t.frame * t.width
-		screen.DrawImage(t.sprite.SubImage(image.Rect(tx, 0, tx+t.width, t.height)).(*ebiten.Image), op)
-	}
-
-	gx := 0
-	if g.portalGem == true {
-		gx = 35
-	}
-
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(10.0, 10.0)
-	screen.DrawImage(statsBox, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(125.0, 64.0)
-	screen.DrawImage(gemCt.SubImage(image.Rect(gx, 0, gx+35, 35)).(*ebiten.Image), op)
-
-	for lx := 0; lx < playerChar.lives; lx++ {
-		op = &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(21.0+float64(lx*20), 64.0)
-		screen.DrawImage(livesCt, op)
-	}
-
-	pointsCt := strconv.Itoa(g.score)
-	g.txtRenderer.SetTarget(screen)
-	g.txtRenderer.SetColor(scoreDisplayColor)
-	g.txtRenderer.SetAlign(etxt.Top, etxt.Right)
-	g.txtRenderer.Draw(pointsCt, 160, 16)
-
-	if playerChar.status == "totally dead" {
-		overOp := &ebiten.DrawImageOptions{}
-		screen.DrawImage(gameOverMessage, overOp)
-	}
+	// TODO
+	// overlays, based on what the pause message and options are
 }

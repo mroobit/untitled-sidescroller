@@ -40,7 +40,6 @@ func main() {
 		defer f.Close()
 		log.SetOutput(f)
 	*/
-
 	log.Printf("Starting up game...")
 
 	loadFonts()
@@ -82,12 +81,12 @@ type State interface {
 
 // NewGame creates a new Game instance (used once, to run program)
 func NewGame() *Game {
-	log.Printf("Creating new game")
+	log.Printf("Generating new game instance")
 	game := &Game{
 		state: map[string]State{
 			"Load":  &Load{splash: splashImages},
 			"Title": &Title{menu: mainMenu},
-			"World": &World{},
+			"World": &World{levels: levelList},
 			"Play":  &Play{},
 			"Pause": &Pause{},
 		},
@@ -106,7 +105,12 @@ func (g *Game) Update() error {
 
 // Draw contains all code for drawing images to screen. It is part of the main game loop in Ebitengine.
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.state[g.mode].Draw(screen, g)
+	switch g.mode {
+	case "Pause":
+		g.state["Play"].Draw(screen, g)
+	default:
+		g.state[g.mode].Draw(screen, g)
+	}
 }
 
 // Layout controls the game window and scaling. It is part of the main game loop in Ebitengine.

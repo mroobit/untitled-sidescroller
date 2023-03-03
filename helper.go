@@ -24,6 +24,7 @@ var (
 var (
 	ebitengineSplash *ebiten.Image
 	splashImages     []*ebiten.Image
+	levelImages      map[string][]*ebiten.Image
 
 	gemCt      *ebiten.Image
 	livesCt    *ebiten.Image
@@ -46,7 +47,7 @@ func loadFonts() {
 }
 
 func newRenderer() *etxt.Renderer {
-	log.Printf("Creating new text renderer")
+	log.Printf("...creating new text renderer")
 	renderer := etxt.NewStdRenderer()
 	glyphsCache := etxt.NewDefaultCache(10 * 1024 * 1024) // 10MB
 	renderer.SetCacheHandler(glyphsCache.NewHandler())
@@ -57,6 +58,7 @@ func newRenderer() *etxt.Renderer {
 }
 
 func loadAssets() {
+	log.Printf("Loading Images...")
 	world = loadImage(FileSystem, "imgs/world--test.png")
 	gooAlley = loadImage(FileSystem, "imgs/goo-alley--test.png")
 	yikesfulMountain = loadImage(FileSystem, "imgs/yikesful-mountain--test.png")
@@ -81,7 +83,7 @@ func loadAssets() {
 	creature = loadImage(FileSystem, "imgs/creature--test.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
-	levelImages := map[string][]*ebiten.Image{
+	levelImages = map[string][]*ebiten.Image{
 		"Goo Alley":         {gooAlley, levelBG},
 		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
 	}
@@ -91,12 +93,12 @@ func loadAssets() {
 		log.Fatal("Error when opening file: ", err)
 	}
 
-	err = json.Unmarshal(lvlContent, &levelData)
+	err = json.Unmarshal(lvlContent, &levelList)
 	if err != nil {
 		log.Fatal("Error during Unmarshalling: ", err)
 	}
 
-	for _, l := range levelData {
+	for _, l := range levelList {
 		l.icon = levelImages[l.Name][0]
 		l.background = levelImages[l.Name][1]
 	}
@@ -104,7 +106,7 @@ func loadAssets() {
 }
 
 func loadImage(fs embed.FS, path string) *ebiten.Image {
-	log.Printf("Loading %s", path)
+	log.Printf(" %s", path)
 	rawFile, err := fs.Open(path)
 	if err != nil {
 		log.Fatalf("Error opening file %s: %v\n", path, err)
