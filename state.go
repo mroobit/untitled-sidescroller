@@ -216,7 +216,8 @@ func (w *World) Load(fs embed.FS) {
 
 	for _, l := range levels {
 		l.icon = levelImages[l.Name][0]
-		l.background = levelImages[l.Name][1]
+		l.iconComplete = levelImages[l.Name][1]
+		l.background = levelImages[l.Name][2]
 	}
 
 	w.levels = levels
@@ -279,9 +280,13 @@ func (w *World) Draw(screen *ebiten.Image, g *Game) {
 	op.GeoM.Translate(float64(worldPlayer.view.xCoord), float64(worldPlayer.view.yCoord))
 	screen.DrawImage(world, op)
 	for _, l := range w.levels {
+		levelIcon := l.icon
+		if l.Complete == true {
+			levelIcon = l.iconComplete
+		}
 		lop := &ebiten.DrawImageOptions{}
 		lop.GeoM.Translate(float64(l.WorldX), float64(l.WorldY))
-		world.DrawImage(l.icon, lop)
+		world.DrawImage(levelIcon, lop)
 	}
 	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(worldPlayer.xCoord), float64(worldPlayer.yCoord))

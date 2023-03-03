@@ -16,8 +16,10 @@ var (
 	tileXCount = 16
 	xCount     = winWidth / tileSize
 
-	gooAlley         *ebiten.Image
-	yikesfulMountain *ebiten.Image
+	gooAlley                 *ebiten.Image
+	gooAlleyComplete         *ebiten.Image
+	yikesfulMountain         *ebiten.Image
+	yikesfulMountainComplete *ebiten.Image
 
 	levelBG                    *ebiten.Image
 	backgroundYikesfulMountain *ebiten.Image
@@ -36,8 +38,9 @@ type LevelData struct {
 	Message  []string
 	Layout   [][]int
 
-	icon       *ebiten.Image
-	background *ebiten.Image // later, this can be []*ebiten.Image, for layered background
+	icon         *ebiten.Image
+	iconComplete *ebiten.Image
+	background   *ebiten.Image // later, this can be []*ebiten.Image, for layered background
 }
 
 func populate(lvl *LevelData, vsx int, vsy int) { // pass level name or index number as a parameter, or change to method with *Level as receiver...

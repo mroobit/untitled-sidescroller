@@ -64,7 +64,9 @@ func loadAssets() {
 	log.Printf("Loading Images...")
 	world = loadImage(FileSystem, "imgs/world--test.png")
 	gooAlley = loadImage(FileSystem, "imgs/goo-alley--test.png")
+	gooAlleyComplete = loadImage(FileSystem, "imgs/goo-alley--complete--test.png")
 	yikesfulMountain = loadImage(FileSystem, "imgs/yikesful-mountain--test.png")
+	yikesfulMountainComplete = loadImage(FileSystem, "imgs/yikesful-mountain--complete--test.png")
 	levelBG = loadImage(FileSystem, "imgs/level-background--test.png")
 	backgroundYikesfulMountain = loadImage(FileSystem, "imgs/level-background-2--test.png")
 
@@ -87,8 +89,8 @@ func loadAssets() {
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
 
 	levelImages = map[string][]*ebiten.Image{
-		"Goo Alley":         {gooAlley, levelBG},
-		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
+		"Goo Alley":         {gooAlley, gooAlleyComplete, levelBG},
+		"Yikesful Mountain": {yikesfulMountain, yikesfulMountainComplete, backgroundYikesfulMountain},
 	}
 }
 
