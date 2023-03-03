@@ -18,14 +18,17 @@ type MenuItem struct {
 }
 
 var (
-	mainMenuItems = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
-	loadMenuItems []string
-	mainMenu      *Menu
-	loadMenu      *Menu
+	mainMenuItems  = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
+	worldMenuItems = []string{"Save", "Stats", "Main Menu", "Quit"}
+	loadMenuItems  []string
+	mainMenu       *Menu
+	worldMenu      *Menu
+	loadMenu       *Menu
 )
 
 func initializeMenus() {
 	mainMenu = NewMenu(mainMenuItems)
+	worldMenu = NewMenu(worldMenuItems)
 	loadMenu = NewMenu(loadMenuItems)
 }
 

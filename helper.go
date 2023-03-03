@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"image/color"
 	"image/png"
 	"log"
@@ -24,6 +23,8 @@ var (
 )
 
 var (
+	loaded = false
+
 	ebitengineSplash *ebiten.Image
 	splashImages     []*ebiten.Image
 	levelImages      map[string][]*ebiten.Image
@@ -84,27 +85,10 @@ func loadAssets() {
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
 	creature = loadImage(FileSystem, "imgs/creature--test.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
-}
 
-func loadLevels() {
 	levelImages = map[string][]*ebiten.Image{
 		"Goo Alley":         {gooAlley, levelBG},
 		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
-	}
-
-	lvlContent, err := FileSystem.ReadFile("levels.json")
-	if err != nil {
-		log.Fatal("Error when opening file: ", err)
-	}
-
-	err = json.Unmarshal(lvlContent, &levelList)
-	if err != nil {
-		log.Fatal("Error during Unmarshalling: ", err)
-	}
-
-	for _, l := range levelList {
-		l.icon = levelImages[l.Name][0]
-		l.background = levelImages[l.Name][1]
 	}
 }
 

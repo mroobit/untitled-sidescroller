@@ -10,8 +10,7 @@ var (
 	levelWidth  int
 	levelHeight int
 
-	levelList []*LevelData
-	levelMap  [][]int
+	levelMap [][]int
 
 	tileSize   = 50
 	tileXCount = 16

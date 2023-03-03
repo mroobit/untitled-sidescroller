@@ -30,7 +30,6 @@ var (
 	FileSystem embed.FS
 )
 
-// main sets up game and runs it, or returns error
 func main() {
 	/*
 		f, err := os.OpenFile("game.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -41,17 +40,7 @@ func main() {
 		log.SetOutput(f)
 	*/
 	log.Printf("Starting up game...")
-
-	loadFonts()
 	loadAssets()
-	loadLevels()
-	loadMenuItems = findSaveFiles()
-	initializeMenus()
-	initializeTreasures()
-	// if savefiles available, create *Menu of savefiles to choose from
-	// for items in savefile location, add to slice
-	// loadMenu = NewMenu(saveitemsslice)
-
 	ebiten.SetWindowSize(winWidth, winHeight)
 	ebiten.SetWindowTitle("A Pixely Side-Scrolling Game Send-up")
 
@@ -74,6 +63,7 @@ type Game struct {
 	score       int
 }
 
+// State describes Game State
 type State interface {
 	Update(g *Game) error
 	Draw(screen *ebiten.Image, g *Game)
@@ -85,14 +75,13 @@ func NewGame() *Game {
 	game := &Game{
 		state: map[string]State{
 			"Load":  &Load{splash: splashImages},
-			"Title": &Title{menu: mainMenu},
-			"World": &World{menu: worldMenu, levels: levelList},
+			"Title": &Title{},
+			"World": &World{},
 			"Play":  &Play{},
 			"Pause": &Pause{},
 		},
 		mode: "Load",
 	}
-	game.txtRenderer = newRenderer()
 	return game
 }
 

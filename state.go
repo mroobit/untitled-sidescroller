@@ -1,11 +1,11 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"image"
 	"log"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 
@@ -14,12 +14,25 @@ import (
 	"github.com/tinne26/etxt"
 )
 
+// Load is a Game State for loading the game
 type Load struct {
 	splash []*ebiten.Image
 	curr   int
 }
 
+// Update changes Game State to Title after 200 ticks
 func (l *Load) Update(g *Game) error {
+	if loaded == false {
+		loadFonts()
+		g.txtRenderer = newRenderer()
+		loadMenuItems = findSaveFiles()
+		initializeMenus()
+		initializeTreasures()
+
+		t := NewTitle()
+		g.state["Title"] = t
+		loaded = true
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) { // developer skip-ahead
 		g.mode = "Title"
 	}
@@ -30,15 +43,18 @@ func (l *Load) Update(g *Game) error {
 	return nil
 }
 
+// Draw displays splash screens during game load
 func (l *Load) Draw(screen *ebiten.Image, g *Game) {
 	op := &ebiten.DrawImageOptions{}
 	screen.DrawImage(l.splash[l.curr], op)
 }
 
+// Title is a Game State containing Title Screen and a Menu
 type Title struct {
 	menu *Menu
 }
 
+// NewTitle creates a new *Title with default main menu
 func NewTitle() *Title {
 	title := &Title{
 		menu: mainMenu,
@@ -46,10 +62,12 @@ func NewTitle() *Title {
 	return title
 }
 
+// Load loads a new Menu into *Title
 func (t *Title) Load(m *Menu) {
 	t.menu = m
 }
 
+// Update changes active selection and selects a MenuItem based on user input
 func (t *Title) Update(g *Game) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		selection := t.menu.Select()
@@ -65,11 +83,15 @@ func (t *Title) Update(g *Game) error {
 			playerChar = NewCharacter("Mona", spriteSheet, playerView, 100)
 			worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
 
+			g.score = 0
+			g.count = 0
+
+			//	loadLevels()
 			world := NewWorld()
+			world.Load(FileSystem)
 			g.state["World"] = world
 			g.mode = "World"
 
-			// Initialize SaveData with character name
 			// saveData := NewSaveData()
 			// saveData.Initialize("Mona")
 		case selection == "Load Game":
@@ -94,10 +116,37 @@ func (t *Title) Update(g *Game) error {
 		case strings.HasSuffix(selection, ".json"):
 			// TODO
 			// Need actual save file, capturing not just *LevelData but also player character, score, etc
+			gameData := LoadGame(selection)
+
+			playerView = NewViewer()
+			worldPlayerView = NewViewer()
+			worldPlayerView.xCoord = gameData.WorldViewX
+			worldPlayerView.yCoord = gameData.WorldViewY
+
+			playerChar = NewCharacter(gameData.Name, spriteSheet, playerView, 100)
+			playerChar.lives = gameData.Lives
+
+			worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
+			worldPlayer.xCoord = gameData.WorldCharX
+			worldPlayer.yCoord = gameData.WorldCharY
+
+			g.score = gameData.Score
+			g.count = gameData.Count
 			world := NewWorld()
-			world.Load(selection)
+			world.Load(FileSystem)
+			for _, level := range world.levels {
+				if gameData.Complete[level.Name] {
+					level.Complete = true
+				}
+			}
+
 			g.state["World"] = world
 			g.mode = "World"
+
+			/*
+				world.Load()
+			*/
+
 		case selection == "Main Menu":
 			t := NewTitle()
 			t.Load(mainMenu)
@@ -114,6 +163,7 @@ func (t *Title) Update(g *Game) error {
 	return nil
 }
 
+// Draw displays Title Screen and Menu, highlighting active selection
 func (t *Title) Draw(screen *ebiten.Image, g *Game) {
 	textColor = menuColorActive
 	g.txtRenderer.SetAlign(etxt.YCenter, etxt.XCenter) // make sure type is centered (gets changed in Play/Pause)
@@ -136,23 +186,25 @@ func (t *Title) Draw(screen *ebiten.Image, g *Game) {
 	}
 }
 
+// World is a Game State that holds all level data for active game
 type World struct {
 	menu   *Menu
 	levels []*LevelData
 }
 
+// NewWorld creates a new World with all levels not yet completed
 func NewWorld() *World {
 	world := &World{
-		menu:   worldMenu,
-		levels: levelList,
+		menu: worldMenu,
 	}
+	world.Load(FileSystem)
 	return world
 }
 
-func (w *World) Load(path string) {
-	// currently this just loads the []*LevelData, but ultimately needs to load player, score, etc data
+// Load loads all default level data into World
+func (w *World) Load(fs embed.FS) {
 	var levels []*LevelData
-	lvlContent, err := os.ReadFile("./save/" + path)
+	lvlContent, err := fs.ReadFile("levels.json")
 	if err != nil {
 		log.Fatal("Error when opening file: ", err)
 	}
@@ -170,7 +222,14 @@ func (w *World) Load(path string) {
 	w.levels = levels
 }
 
+// Update changes player location/worldview offset and changes state to Play based on user input
 func (w *World) Update(g *Game) error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		saveData := NewSaveData(g)
+		log.Printf("Name is " + saveData.Name)
+		log.Printf(strconv.Itoa(saveData.Lives))
+		saveData.Save(g, playerChar, worldPlayer)
+	}
 	// set worldPlayer location and view screen: this should go in Menu->Start New Game
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		// later, ask confirmation if game not saved since entering World
@@ -214,6 +273,7 @@ func (w *World) Update(g *Game) error {
 	return nil
 }
 
+// Draw displays player on World map
 func (w *World) Draw(screen *ebiten.Image, g *Game) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(worldPlayer.view.xCoord), float64(worldPlayer.view.yCoord))
@@ -228,11 +288,13 @@ func (w *World) Draw(screen *ebiten.Image, g *Game) {
 	screen.DrawImage(worldPlayer.sprite.SubImage(image.Rect(0, 0, 50, 50)).(*ebiten.Image), op)
 }
 
+// Play contains data for active level
 type Play struct {
 	level *LevelData
 	gem   bool
 }
 
+// NewPlay creates new Play for a given level on entry
 func NewPlay(l *LevelData) *Play {
 	play := &Play{
 		level: l,
@@ -240,6 +302,7 @@ func NewPlay(l *LevelData) *Play {
 	return play
 }
 
+// Update is the main gameplay function. Changes score, player health/lives based on user input and collisions
 func (p *Play) Update(g *Game) error {
 	// sprite frames for different things -- handle differently later
 	portalFrame = (g.count / 5) % portalFrameCount
@@ -400,6 +463,7 @@ func (p *Play) Update(g *Game) error {
 	return nil
 }
 
+// Draw displays level game play
 func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	lvlOp := &ebiten.DrawImageOptions{}
 	lvlOp.GeoM.Translate(float64(playerChar.view.xCoord), float64(playerChar.view.yCoord))
@@ -490,11 +554,13 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	}
 }
 
+// Pause is a Game State that halts other game logic
 type Pause struct {
 	message string
 	options *Menu
 }
 
+// Update only updates playerChar status for death animation and Game Over screen
 func (p *Pause) Update(g *Game) error {
 	switch {
 	case playerChar.status == "totally dead":
@@ -521,6 +587,7 @@ func (p *Pause) Update(g *Game) error {
 	return nil
 }
 
+// Draw isn't implemented yet
 func (p *Pause) Draw(screen *ebiten.Image, g *Game) {
 	// TODO
 	// overlays, based on what the pause message and options are
