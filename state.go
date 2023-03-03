@@ -40,12 +40,50 @@ type Title struct {
 
 func (t *Title) Update(g *Game) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-		selection, err := t.menu.Select()
-		if err != nil {
-			return err
-		}
+		selection := t.menu.Select()
 
-		g.mode = selection
+		switch {
+		case selection == "New Game":
+			log.Printf("Starting New Game")
+			// prompt for character name
+			// create character with provided name
+			playerView = NewViewer()
+			worldPlayerView = NewViewer()
+
+			playerChar = NewCharacter("Mona", spriteSheet, playerView, 100)
+			worldPlayer = NewWorldChar(spriteSheet, worldPlayerView)
+
+			world := NewWorld()
+			g.state["World"] = world
+			g.mode = "World"
+
+			// Initialize SaveData with character name
+			// saveData := NewSaveData()
+			// saveData.Initialize("Mona")
+		case selection == "Load Game":
+			log.Printf("Loading Game -- not yet implemented")
+
+			//TODO
+			// list of savefiles to choose from, as *Menu
+			// temporarily set g.state["Title"] to that menu
+			// then revert it back on any option chosen
+
+			// world := NewWorld()
+			// world.Load(save)
+
+			g.mode = "Title"
+		case selection == "How To Play":
+			//TODO
+			log.Printf("Display Instructions -- not yet implemented")
+			g.mode = "Title"
+		case selection == "Credits":
+			//TODO
+			log.Printf("Display Credits -- not yet implemented")
+			g.mode = "Title"
+		case selection == "Exit":
+			log.Printf("Attempting to Exit Game")
+			return ErrExit
+		}
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
 		t.menu.Next()
