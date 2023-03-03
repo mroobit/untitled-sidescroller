@@ -143,6 +143,7 @@ type World struct {
 
 func NewWorld() *World {
 	world := &World{
+		menu:   worldMenu,
 		levels: levelList,
 	}
 	return world
@@ -207,7 +208,6 @@ func (w *World) Update(g *Game) error {
 			levelSetup(l, playerChar.view.xCoord, playerChar.view.yCoord)
 			playLevel := NewPlay(l)
 			g.state["Play"] = playLevel
-			g.portalGem = false
 			g.mode = "Play"
 		}
 	}
@@ -230,6 +230,7 @@ func (w *World) Draw(screen *ebiten.Image, g *Game) {
 
 type Play struct {
 	level *LevelData
+	gem   bool
 }
 
 func NewPlay(l *LevelData) *Play {
@@ -356,7 +357,7 @@ func (p *Play) Update(g *Game) error {
 		if playerBox.Overlaps(treasureBox) {
 			g.score += t.value
 			if t.name == "Portal Gem" {
-				g.portalGem = true
+				p.gem = true
 			}
 			treasureList = append(treasureList[0:i], treasureList[i+1:]...)
 		}
@@ -380,11 +381,11 @@ func (p *Play) Update(g *Game) error {
 		}
 	}
 
-	if g.portalGem &&
+	if p.gem &&
 		playerBox.Overlaps(image.Rect(p.level.ExitX+playerChar.view.xCoord, p.level.ExitY+playerChar.view.yCoord,
 			p.level.ExitX+portalWidth+playerChar.view.xCoord, p.level.ExitY+portalHeight+playerChar.view.yCoord)) {
 		p.level.Complete = true
-		g.portalGem = false
+		p.gem = false
 		clearLevel()
 		log.Print("Just hit the portal")
 		//levelComplete()
@@ -429,7 +430,7 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 		op.GeoM.Translate(float64(e.xCoord), float64(e.yCoord))
 		p.level.background.DrawImage(e.sprite, op)
 	}
-	if g.portalGem == true {
+	if p.gem == true {
 		top := &ebiten.DrawImageOptions{}
 		top.GeoM.Translate(float64(p.level.ExitX+playerChar.view.xCoord), float64(p.level.ExitY+playerChar.view.yCoord))
 		px := portalFrame * 100
@@ -459,7 +460,7 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	}
 
 	gx := 0
-	if g.portalGem == true {
+	if p.gem == true {
 		gx = 35
 	}
 

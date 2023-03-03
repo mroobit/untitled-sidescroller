@@ -71,8 +71,6 @@ type Game struct {
 	txtRenderer *etxt.Renderer
 	count       int
 	timer       int
-	lvl         *LevelData
-	portalGem   bool // deprecate? Could keep, to cheaply track whether to open portal -- maybe rename levelItem
 	score       int
 }
 
@@ -88,7 +86,7 @@ func NewGame() *Game {
 		state: map[string]State{
 			"Load":  &Load{splash: splashImages},
 			"Title": &Title{menu: mainMenu},
-			"World": &World{levels: levelList},
+			"World": &World{menu: worldMenu, levels: levelList},
 			"Play":  &Play{},
 			"Pause": &Pause{},
 		},
