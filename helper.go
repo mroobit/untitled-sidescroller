@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/png"
 	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/tinne26/etxt"
@@ -16,6 +17,7 @@ var (
 
 	menuColorActive   = color.RGBA{140, 50, 90, 255}
 	menuColorInactive = color.RGBA{0xff, 0xff, 0xff, 255}
+	menuColorDisabled = color.RGBA{60, 60, 60, 255}
 	scoreDisplayColor = color.RGBA{0, 0, 0, 255}
 
 	textColor color.RGBA
@@ -82,7 +84,9 @@ func loadAssets() {
 	hazard = loadImage(FileSystem, "imgs/blob--test.png")
 	creature = loadImage(FileSystem, "imgs/creature--test.png")
 	gameOverMessage = loadImage(FileSystem, "imgs/game-over.png")
+}
 
+func loadLevels() {
 	levelImages = map[string][]*ebiten.Image{
 		"Goo Alley":         {gooAlley, levelBG},
 		"Yikesful Mountain": {yikesfulMountain, backgroundYikesfulMountain},
@@ -102,7 +106,21 @@ func loadAssets() {
 		l.icon = levelImages[l.Name][0]
 		l.background = levelImages[l.Name][1]
 	}
+}
 
+func findSaveFiles() []string {
+	saveFiles := []string{}
+	files, err := os.ReadDir("./save/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, item := range files {
+		if string(item.Name()) != "levels.json" {
+			saveFiles = append(saveFiles, string(item.Name()))
+		}
+	}
+	saveFiles = append(saveFiles, "Main Menu")
+	return saveFiles
 }
 
 func loadImage(fs embed.FS, path string) *ebiten.Image {

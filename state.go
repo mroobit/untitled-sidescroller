@@ -1,12 +1,13 @@
 package main
 
 import (
-	"embed"
 	"encoding/json"
 	"image"
 	"log"
 	"math"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -38,6 +39,17 @@ type Title struct {
 	menu *Menu
 }
 
+func NewTitle() *Title {
+	title := &Title{
+		menu: mainMenu,
+	}
+	return title
+}
+
+func (t *Title) Load(m *Menu) {
+	t.menu = m
+}
+
 func (t *Title) Update(g *Game) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		selection := t.menu.Select()
@@ -61,16 +73,12 @@ func (t *Title) Update(g *Game) error {
 			// saveData := NewSaveData()
 			// saveData.Initialize("Mona")
 		case selection == "Load Game":
-			log.Printf("Loading Game -- not yet implemented")
-
-			//TODO
-			// list of savefiles to choose from, as *Menu
-			// temporarily set g.state["Title"] to that menu
-			// then revert it back on any option chosen
-
-			// world := NewWorld()
-			// world.Load(save)
-
+			log.Printf("Choose a Saved Game")
+			if len(loadMenuItems) > 1 {
+				t := NewTitle()
+				t.Load(loadMenu)
+				g.state["Title"] = t
+			}
 			g.mode = "Title"
 		case selection == "How To Play":
 			//TODO
@@ -83,6 +91,18 @@ func (t *Title) Update(g *Game) error {
 		case selection == "Exit":
 			log.Printf("Attempting to Exit Game")
 			return ErrExit
+		case strings.HasSuffix(selection, ".json"):
+			// TODO
+			// Need actual save file, capturing not just *LevelData but also player character, score, etc
+			world := NewWorld()
+			world.Load(selection)
+			g.state["World"] = world
+			g.mode = "World"
+		case selection == "Main Menu":
+			t := NewTitle()
+			t.Load(mainMenu)
+			g.state["Title"] = t
+			g.mode = "Title"
 		}
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
@@ -105,6 +125,9 @@ func (t *Title) Draw(screen *ebiten.Image, g *Game) {
 		if menuHead == t.menu.active {
 			textColor = menuColorActive
 		}
+		if menuHead == t.menu.active && t.menu.active.option == "Load Game" && len(loadMenuItems) < 2 {
+			textColor = menuColorDisabled
+		}
 		g.txtRenderer.SetTarget(screen)
 		g.txtRenderer.SetColor(textColor)
 		g.txtRenderer.Draw(menuHead.option, 300, locY)
@@ -125,9 +148,10 @@ func NewWorld() *World {
 	return world
 }
 
-func (w *World) Load(fs embed.FS, path string) {
+func (w *World) Load(path string) {
+	// currently this just loads the []*LevelData, but ultimately needs to load player, score, etc data
 	var levels []*LevelData
-	lvlContent, err := fs.ReadFile(path)
+	lvlContent, err := os.ReadFile("./save/" + path)
 	if err != nil {
 		log.Fatal("Error when opening file: ", err)
 	}

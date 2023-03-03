@@ -44,6 +44,8 @@ func main() {
 
 	loadFonts()
 	loadAssets()
+	loadLevels()
+	loadMenuItems = findSaveFiles()
 	initializeMenus()
 	initializeTreasures()
 	// if savefiles available, create *Menu of savefiles to choose from

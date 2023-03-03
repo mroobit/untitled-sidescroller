@@ -19,14 +19,17 @@ type MenuItem struct {
 
 var (
 	mainMenuItems = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
+	loadMenuItems []string
 	mainMenu      *Menu
+	loadMenu      *Menu
 )
 
 func initializeMenus() {
 	mainMenu = NewMenu(mainMenuItems)
+	loadMenu = NewMenu(loadMenuItems)
 }
 
-// NewMenu creates a Menu from a slice of select
+// NewMenu creates a Menu from a slice of strings
 func NewMenu(items []string) *Menu {
 	menu := &Menu{}
 	for _, v := range items {
