@@ -195,7 +195,7 @@ func (w *WorldChar) navLeft(radiusCheck float64) {
 func (w *WorldChar) navUp(radiusCheck float64) {
 	worldPlayer.direction = "up"
 	switch {
-	case worldPlayer.view.yCoord == -520 && worldPlayer.yCoord < 230:
+	case worldPlayer.view.yCoord == -520 && worldPlayer.yCoord > 230:
 		worldPlayer.yCoord -= 5
 	case worldPlayer.view.yCoord == 0 && radiusCheck < radius:
 		worldPlayer.yCoord -= 5
@@ -206,7 +206,7 @@ func (w *WorldChar) navUp(radiusCheck float64) {
 func (w *WorldChar) navDown(radiusCheck float64) {
 	worldPlayer.direction = "down"
 	switch {
-	case worldPlayer.view.yCoord == 0 && worldPlayer.yCoord > 250:
+	case worldPlayer.view.yCoord == 0 && worldPlayer.yCoord < 250:
 		worldPlayer.yCoord += 5
 	case worldPlayer.view.yCoord == -520 && radiusCheck+50 < radius:
 		worldPlayer.yCoord += 5
