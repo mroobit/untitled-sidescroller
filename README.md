@@ -1,6 +1,6 @@
 # Untitled Side-Scrolling Game
 
-![2023-02-28--untitled-sidescroller-d](https://user-images.githubusercontent.com/69212809/221961174-ac206000-2741-46ca-9973-9fb2bbc46353.gif)
+![untitled-sidescroller-early-demo--03-06](https://user-images.githubusercontent.com/69212809/223170546-fca04225-034e-4587-96b5-c31302b2422c.gif)
 
 
 ## Status
@@ -38,6 +38,7 @@ All artwork are rough stand-ins (I'm learning how to make pixel art alongside bu
 - [x] Treasure Collected Display (either always on screen, or available on [space])
 - [ ] Fix Gravity (currently player character floats once jump velocity is resolved)
 - [x] Player death animation (rough)
+- [ ] Story transitions on levels (entering, dying, exiting)
 
 **World Map**
 - [x] Background planet, city placeholders
@@ -62,7 +63,7 @@ All artwork are rough stand-ins (I'm learning how to make pixel art alongside bu
 - [ ] Multiple varieties of treasures, hazards, enviro blocks, creatures
 
 ## Other Thoughts
-I haven't decided yet whether to include things like weapons or jump modifiers (looking at you, pogo stick from the Keen games). I like the idea of building a game where you have a weapon, but very limited ammo (across the entire game) and it is encouraged that you find non-lethal solutions where you can, acknowledging that sometimes it's the only option.
+I haven't decided yet whether to include things like weapons or jump modifiers (looking at you, pogo stick from the Commander Keen games). I like the idea of building a game where you have a weapon, but very limited ammo (across the entire game) and it is encouraged that you find non-lethal solutions where you can, acknowledging that sometimes it's the only option.
 
 ## Influences
 This game is heavily influenced by my love of the Commander Keen series (I played both trilogies as a kid and discovered the lost episode in college), Cosmo's Cosmic Adventure, and Cave Story.
