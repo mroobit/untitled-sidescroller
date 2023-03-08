@@ -2,6 +2,8 @@
 
 ![untitled-sidescroller-early-demo--03-06](https://user-images.githubusercontent.com/69212809/223170546-fca04225-034e-4587-96b5-c31302b2422c.gif)
 
+A [playable demo](https://shannondybvig.com/project.php?name=sidescroller) is available.
+
 
 ## Status
 Currently there are two playable levels, accessible from the world map. Players can collect treasures (for points) and the portal gem (to activate the portal), jump over hazards and creatures (which cause death on contact), and complete the level by exiting through the portal. There is a brief animation when the player dies before they are returned to the world map (if they have lives remaining) or shown a "Game Over" screen.
