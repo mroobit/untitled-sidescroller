@@ -10,6 +10,9 @@ Currently there are two playable levels, accessible from the world map. Players 
 
 All artwork are rough stand-ins (I'm learning how to make pixel art alongside building the game).
 
+## Licenses
+The code in this repository is licensed under the MIT License. Images in `imgs` and `documentation` are not currently licensed. Font is being used in compliance with OFL (a copy of which is in the `fonts` directory).
+
 ## Minimum Demo
 - [x] Modes for Load, Main Menu, World Map, and Playable Level
 - [x] Main Menu
