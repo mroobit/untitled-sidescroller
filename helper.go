@@ -101,7 +101,7 @@ func findSaveFiles() []string {
 		log.Fatal(err)
 	}
 	for _, item := range files {
-		if string(item.Name()) != "levels.json" {
+		if string(item.Name()) != "README.md" {
 			saveFiles = append(saveFiles, string(item.Name()))
 		}
 	}

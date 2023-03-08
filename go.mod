@@ -1,4 +1,4 @@
-module github.com/mroobit/mona-game
+module github.com/mroobit/untitled-sidescroller
 
 go 1.20
 
