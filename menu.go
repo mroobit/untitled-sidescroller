@@ -18,7 +18,10 @@ type MenuItem struct {
 }
 
 var (
-	mainMenuItems  = []string{"New Game", "Load Game", "How To Play", "Credits", "Exit"}
+	mainHeader     = gameTitle
+	worldHeader    = "Options"
+	loadHeader     = "Saved Games"
+	mainMenuItems  = []string{"New Game", "Load Game", "How To Play", "Acknowledgements", "Exit"}
 	worldMenuItems = []string{"Save", "Stats", "Main Menu", "Quit"}
 	loadMenuItems  []string
 	mainMenu       *Menu

@@ -79,6 +79,7 @@ func NewGame() *Game {
 			"World": &World{},
 			"Play":  &Play{},
 			"Pause": &Pause{},
+			"Info":  &Info{},
 		},
 		mode: "Load",
 	}
@@ -97,6 +98,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	switch g.mode {
 	case "Pause":
 		g.state["Play"].Draw(screen, g)
+		g.state[g.mode].Draw(screen, g)
 	default:
 		g.state[g.mode].Draw(screen, g)
 	}

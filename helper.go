@@ -18,6 +18,7 @@ var (
 	menuColorInactive = color.RGBA{0xff, 0xff, 0xff, 255}
 	menuColorDisabled = color.RGBA{60, 60, 60, 255}
 	scoreDisplayColor = color.RGBA{0, 0, 0, 255}
+	messageBoxColor   = color.RGBA{0, 0, 0, 255}
 
 	textColor color.RGBA
 )
@@ -25,6 +26,7 @@ var (
 var (
 	loaded = false
 
+	gameTitle        = "Untitled Sidescroller"
 	ebitengineSplash *ebiten.Image
 	splashImages     []*ebiten.Image
 	levelImages      map[string][]*ebiten.Image
@@ -37,6 +39,12 @@ var (
 	world *ebiten.Image
 
 	gameOverMessage *ebiten.Image
+)
+
+var (
+	infoCredit = []string{
+		"The Ebitengine logo was created by Hajime Hoshi\nand is licensed under the Creative Commons\nAttribution-NoDerivatives 4.0 license",
+	}
 )
 
 func loadFonts() {
@@ -77,7 +85,7 @@ func loadAssets() {
 
 	gemCt = loadImage(FileSystem, "imgs/gem-count-large.png")
 	livesCt = loadImage(FileSystem, "imgs/lives-left.png")
-	messageBox = loadImage(FileSystem, "imgs/message-box.png")
+	messageBox = loadImage(FileSystem, "imgs/message-box-large.png")
 	statsBox = loadImage(FileSystem, "imgs/stats-box.png")
 
 	brick = loadImage(FileSystem, "imgs/brick--test.png")

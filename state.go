@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"image"
 	"log"
 	"math"
@@ -25,7 +26,7 @@ func (l *Load) Update(g *Game) error {
 	if loaded == false {
 		loadFonts()
 		g.txtRenderer = newRenderer()
-		loadMenuItems = findSaveFiles()
+		//loadMenuItems = findSaveFiles()
 		initializeMenus()
 		initializeTreasures()
 
@@ -51,13 +52,15 @@ func (l *Load) Draw(screen *ebiten.Image, g *Game) {
 
 // Title is a Game State containing Title Screen and a Menu
 type Title struct {
-	menu *Menu
+	header string
+	menu   *Menu
 }
 
 // NewTitle creates a new *Title with default main menu
 func NewTitle() *Title {
 	title := &Title{
-		menu: mainMenu,
+		header: mainHeader,
+		menu:   mainMenu,
 	}
 	return title
 }
@@ -99,6 +102,7 @@ func (t *Title) Update(g *Game) error {
 			if len(loadMenuItems) > 1 {
 				t := NewTitle()
 				t.Load(loadMenu)
+				t.header = loadHeader
 				g.state["Title"] = t
 			}
 			g.mode = "Title"
@@ -106,16 +110,16 @@ func (t *Title) Update(g *Game) error {
 			//TODO
 			log.Printf("Display Instructions -- not yet implemented")
 			g.mode = "Title"
-		case selection == "Credits":
-			//TODO
-			log.Printf("Display Credits -- not yet implemented")
-			g.mode = "Title"
+		case selection == "Acknowledgements":
+			c := NewInfo()
+			c.message = infoCredit
+			c.previous = "Title"
+			g.state["Info"] = c
+			g.mode = "Info"
 		case selection == "Exit":
 			log.Printf("Attempting to Exit Game")
 			return ErrExit
 		case strings.HasSuffix(selection, ".json"):
-			// TODO
-			// Need actual save file, capturing not just *LevelData but also player character, score, etc
 			gameData := LoadGame(selection)
 
 			playerView = NewViewer()
@@ -150,6 +154,7 @@ func (t *Title) Update(g *Game) error {
 		case selection == "Main Menu":
 			t := NewTitle()
 			t.Load(mainMenu)
+			t.header = mainHeader
 			g.state["Title"] = t
 			g.mode = "Title"
 		}
@@ -167,18 +172,23 @@ func (t *Title) Update(g *Game) error {
 func (t *Title) Draw(screen *ebiten.Image, g *Game) {
 	textColor = menuColorActive
 	g.txtRenderer.SetAlign(etxt.YCenter, etxt.XCenter) // make sure type is centered (gets changed in Play/Pause)
+	g.txtRenderer.SetTarget(screen)
+
+	locY := 80
+	g.txtRenderer.SetColor(menuColorInactive)
+	g.txtRenderer.Draw(t.header, 300, locY)
 
 	var menuHead = t.menu.head
-	var locY = 100
+	locY = 150
 	for i := t.menu.length; i > 0; i-- {
 		textColor = menuColorInactive
 		if menuHead == t.menu.active {
 			textColor = menuColorActive
 		}
-		if menuHead == t.menu.active && t.menu.active.option == "Load Game" && len(loadMenuItems) < 2 {
+		if menuHead == t.menu.active &&
+			((t.menu.active.option == "Load Game" && len(loadMenuItems) < 2) || t.menu.active.option == "How To Play") {
 			textColor = menuColorDisabled
 		}
-		g.txtRenderer.SetTarget(screen)
 		g.txtRenderer.SetColor(textColor)
 		g.txtRenderer.Draw(menuHead.option, 300, locY)
 		locY += 50
@@ -225,12 +235,14 @@ func (w *World) Load(fs embed.FS) {
 
 // Update changes player location/worldview offset and changes state to Play based on user input
 func (w *World) Update(g *Game) error {
-	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
-		saveData := NewSaveData(g)
-		log.Printf("Name is " + saveData.Name)
-		log.Printf(strconv.Itoa(saveData.Lives))
-		saveData.Save(g, playerChar, worldPlayer)
-	}
+	/*
+		if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+			saveData := NewSaveData(g)
+			log.Printf("Name is " + saveData.Name)
+			log.Printf(strconv.Itoa(saveData.Lives))
+			saveData.Save(g, playerChar, worldPlayer)
+		}
+	*/
 	// set worldPlayer location and view screen: this should go in Menu->Start New Game
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		// later, ask confirmation if game not saved since entering World
@@ -561,6 +573,7 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 
 // Pause is a Game State that halts other game logic
 type Pause struct {
+	mode    string
 	message string
 	options *Menu
 }
@@ -596,4 +609,58 @@ func (p *Pause) Update(g *Game) error {
 func (p *Pause) Draw(screen *ebiten.Image, g *Game) {
 	// TODO
 	// overlays, based on what the pause message and options are
+
+	switch {
+	case p.mode == "message":
+		// draw box image
+		boxW, boxH := messageBox.Size()
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64((winWidth-boxW)/2), float64((winHeight-boxH)/2))
+		screen.DrawImage(messageBox, op)
+		// draw etxt story message
+		//g.txtRenderer.SetAlign(	///////////
+		g.txtRenderer.SetTarget(screen)
+		g.txtRenderer.SetColor(messageBoxColor)
+		// g.txtRenderer.Draw(p.message, $int, $int) -- calculate these location variables in the Update method above
+		// draw menu buttons (define these in Update)
+	}
+}
+
+type Info struct {
+	message  []string
+	previous string
+}
+
+func NewInfo() *Info {
+	info := &Info{}
+	return info
+}
+
+func (i *Info) Update(g *Game) error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		g.mode = i.previous
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		fmt.Println(i.previous)
+	}
+	return nil
+}
+
+func (i *Info) Draw(screen *ebiten.Image, g *Game) {
+	locY := 100
+	g.txtRenderer.SetAlign(etxt.YCenter, etxt.XCenter)
+	g.txtRenderer.SetTarget(screen)
+	g.txtRenderer.SetColor(menuColorInactive)
+	g.txtRenderer.Draw("Acknowledgements", winWidth/2, locY)
+	locY += 100
+	g.txtRenderer.SetSizePx(18)
+	for _, m := range i.message {
+		g.txtRenderer.Draw(m, winWidth/2, locY)
+		locY += 75
+	}
+	locY += 50
+	g.txtRenderer.SetSizePx(32)
+	g.txtRenderer.SetColor(menuColorActive)
+	g.txtRenderer.Draw("Main Menu", winWidth/2, locY)
+
 }
