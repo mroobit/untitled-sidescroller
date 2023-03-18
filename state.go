@@ -280,7 +280,9 @@ func (w *World) Update(g *Game) error {
 			levelSetup(l, playerChar.view.xCoord, playerChar.view.yCoord)
 			playLevel := NewPlay(l)
 			g.state["Play"] = playLevel
-			g.mode = "Play"
+			pauseEntry := NewPause("message", l.Message[0])
+			g.state["Pause"] = pauseEntry
+			g.mode = "Pause"
 		}
 	}
 	return nil
@@ -578,9 +580,50 @@ type Pause struct {
 	options *Menu
 }
 
+// NewPause creates new Pause struct
+func NewPause(mod, msg string) *Pause {
+	p := &Pause{
+		mode:    mod,
+		message: msg,
+	}
+	p.FormatMessage()
+	return p
+}
+
+// FormatMessage adds newlines to Pause.message to fit into messageBox
+func (p *Pause) FormatMessage() {
+	maxLineLen := 20 // adjust based on txt size, msgbox width
+	if len(p.message) > maxLineLen {
+		words := strings.Fields(p.message)
+		lines := []string{""}
+		curr := 0
+		for _, w := range words {
+			if len(lines[curr])+len(w)+1 > maxLineLen {
+				lines[curr] = lines[curr][:len(lines[curr])-1]
+				curr++
+				lines = append(lines, "")
+			}
+
+			lines[curr] += w + " "
+		}
+		p.message = ""
+		for i, l := range lines {
+			p.message += l
+			if i != len(lines)-1 {
+				p.message += "\n"
+			}
+		}
+	}
+}
+
 // Update only updates playerChar status for death animation and Game Over screen
 func (p *Pause) Update(g *Game) error {
 	switch {
+	case p.mode == "message":
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			p.mode = ""
+			g.mode = "Play"
+		}
 	case playerChar.status == "totally dead":
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			g.mode = "Title"
@@ -618,24 +661,28 @@ func (p *Pause) Draw(screen *ebiten.Image, g *Game) {
 		op.GeoM.Translate(float64((winWidth-boxW)/2), float64((winHeight-boxH)/2))
 		screen.DrawImage(messageBox, op)
 		// draw etxt story message
-		//g.txtRenderer.SetAlign(	///////////
+		g.txtRenderer.SetAlign(etxt.YCenter, etxt.XCenter)
+		g.txtRenderer.SetSizePx(28)
 		g.txtRenderer.SetTarget(screen)
 		g.txtRenderer.SetColor(messageBoxColor)
-		// g.txtRenderer.Draw(p.message, $int, $int) -- calculate these location variables in the Update method above
+		g.txtRenderer.Draw(p.message, winWidth/2, winHeight/2)
 		// draw menu buttons (define these in Update)
 	}
 }
 
+// Info is currently for Acknowledgement page information, holds previous game state
 type Info struct {
 	message  []string
 	previous string
 }
 
+// NewInfo creates new Info struct
 func NewInfo() *Info {
 	info := &Info{}
 	return info
 }
 
+// Update returns to previous game state on [Enter]
 func (i *Info) Update(g *Game) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		g.mode = i.previous
@@ -646,6 +693,7 @@ func (i *Info) Update(g *Game) error {
 	return nil
 }
 
+// Draw draws Acknowledgements to screen
 func (i *Info) Draw(screen *ebiten.Image, g *Game) {
 	locY := 100
 	g.txtRenderer.SetAlign(etxt.YCenter, etxt.XCenter)
