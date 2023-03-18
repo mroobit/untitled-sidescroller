@@ -553,7 +553,7 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	op.GeoM.Translate(125.0, 64.0)
 	screen.DrawImage(gemCt.SubImage(image.Rect(gx, 0, gx+35, 35)).(*ebiten.Image), op)
 
-	for lx := 0; lx < playerChar.lives; lx++ {
+	for lx := 0; lx < playerChar.lives-1; lx++ {
 		op = &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(21.0+float64(lx*20), 64.0)
 		screen.DrawImage(livesCt, op)

@@ -95,7 +95,7 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 		status:    "ground",
 		hpCurrent: hp,
 		hpTotal:   hp,
-		lives:     3,
+		lives:     4,
 	}
 	return character
 }
