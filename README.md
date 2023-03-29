@@ -2,7 +2,7 @@
 
 ![untitled-sidescroller-early-demo--03-06](https://user-images.githubusercontent.com/69212809/223170546-fca04225-034e-4587-96b5-c31302b2422c.gif)
 
-A [playable demo](https://shannondybvig.com/project.php?name=sidescroller) is available.
+A [playable demo](https://shannondybvig.com/projects/untitled-sidescroller/) is available.
 
 
 ## Status
