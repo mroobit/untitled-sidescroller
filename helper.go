@@ -132,3 +132,17 @@ func loadImage(fs embed.FS, path string) *ebiten.Image {
 	loadedImg := ebiten.NewImageFromImage(img)
 	return loadedImg
 }
+
+func Collides(a, b *ebiten.Image) bool {
+	overlap := a.Bounds().Union(b.Bounds())
+	for x := overlap.Min.X; x <= overlap.Max.X; x++ {
+		for y := overlap.Min.Y; y <= overlap.Min.Y; y++ {
+			alphaA := a.RGBA64At(x, y).A
+			alphaB := b.RGBA64At(x, y).A
+			if alphaA != 0 && alphaB != 0 {
+				return true
+			}
+		}
+	}
+	return false
+}

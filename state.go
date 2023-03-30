@@ -432,7 +432,11 @@ func (p *Play) Update(g *Game) error {
 
 	creatureMovement()
 
+	//	smallerBox := 3
 	playerBox := image.Rect(playerChar.xCoord, playerChar.yCoord, playerChar.xCoord+playerCharWidth, playerChar.yCoord+playerCharWidth)
+	cx, cy := currentFrame*playerCharWidth, playerChar.facing
+	playerSubImage := playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image)
+	//playerBox := image.Rect(playerChar.xCoord+smallerBox, playerChar.yCoord+smallerBox, playerChar.xCoord+playerCharWidth-smallerBox, playerChar.yCoord+playerCharWidth-smallerBox)
 
 	for i, t := range treasureList {
 		treasureBox := image.Rect(t.xCoord, t.yCoord, t.xCoord+50, t.yCoord+50)
@@ -447,15 +451,23 @@ func (p *Play) Update(g *Game) error {
 
 	for _, h := range hazardList {
 		hazardBox := image.Rect(h.xCoord, h.yCoord, h.xCoord+50, h.yCoord+50)
+		//hazardBox := image.Rect(h.xCoord+smallerBox, h.yCoord+smallerBox, h.xCoord+50-smallerBox, h.yCoord+50-smallerBox)
 		if playerBox.Overlaps(hazardBox) {
-			playerChar.death()
-			g.mode = "Pause"
-			g.timer = 30
+			// subimage hazardbox
+			hx := hazardFrame * 50
+			hazardSubImage := h.sprite.SubImage(image.Rect(hx, 0, hx+50, 50)).(*ebiten.Image)
+			col := Collides(playerSubImage, hazardSubImage)
+			if col {
+				playerChar.death()
+				g.mode = "Pause"
+				g.timer = 30
+			}
 		}
 	}
 
 	for _, c := range creatureList {
 		creatureBox := image.Rect(c.xCoord, c.yCoord, c.xCoord+50, c.yCoord+50)
+		//creatureBox := image.Rect(c.xCoord+smallerBox, c.yCoord+smallerBox, c.xCoord+50-smallerBox, c.yCoord+50-smallerBox)
 		if playerBox.Overlaps(creatureBox) {
 			playerChar.death()
 			g.mode = "Pause"
