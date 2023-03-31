@@ -106,6 +106,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 // Layout controls the game window and scaling. It is part of the main game loop in Ebitengine.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	s := ebiten.DeviceScaleFactor()
-	return int(float64(outsideWidth) * s), int(float64(outsideHeight) * s)
+	//	s := ebiten.DeviceScaleFactor()
+	//	return int(float64(outsideWidth) * s), int(float64(outsideHeight) * s)
+	return winWidth, winHeight
 }
