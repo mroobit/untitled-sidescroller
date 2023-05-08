@@ -8,6 +8,7 @@ import (
 
 var (
 	spriteSheet *ebiten.Image
+	charSprite  []*ebiten.Image
 
 	playerView       *Viewer
 	playerChar       *Character
@@ -22,6 +23,7 @@ var (
 	defaultFrame = 2
 	currentFrame = defaultFrame
 	frameCount   = 12
+	charFrameCt  = 12
 )
 
 // Viewer is the part of the total level that is visible, as indicated by the X,Y of the upper left corner
@@ -36,6 +38,7 @@ type Viewer struct {
 type Character struct {
 	name      string
 	sprite    *ebiten.Image
+	sprites   []*ebiten.Image
 	view      *Viewer
 	facing    int
 	xCoord    int
@@ -86,6 +89,7 @@ func NewCharacter(name string, sprite *ebiten.Image, view *Viewer, hp int) *Char
 	character := &Character{
 		name:      name,
 		sprite:    sprite,
+		sprites:   charSprite,
 		view:      view,
 		facing:    0,
 		xCoord:    20,
@@ -134,7 +138,8 @@ func (c *Character) moveRight() {
 }
 
 func (c *Character) moveLeft() {
-	playerChar.facing = playerCharHeight
+	//playerChar.facing = playerCharHeight
+	playerChar.facing = 1
 	switch {
 	case playerChar.view.xCoord == -200 && playerChar.xCoord > 290:
 		playerChar.xCoord -= 5

@@ -16,8 +16,8 @@ var (
 
 func initializeTreasures() {
 	treasureTypeList = map[int]*TreasureType{
-		3: {"Portal Gem", portalGem, 50, 50, 0, 0, 5},
-		4: {"Shiny Green Ball", shinyGreenBall, 40, 40, 10, 0, 7},
+		3: {name: "Portal Gem", sprite: portalGem, width: 50, height: 50, value: 0, frame: 0, frameCt: 5},
+		4: {name: "Shiny Green Ball", sprite: shinyGreenBall, width: 40, height: 40, value: 10, frame: 0, frameCt: 7},
 	}
 }
 
@@ -25,6 +25,7 @@ func initializeTreasures() {
 type TreasureType struct {
 	name    string
 	sprite  *ebiten.Image
+	sprites []*ebiten.Image
 	width   int
 	height  int
 	value   int

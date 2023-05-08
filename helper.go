@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"image"
 	"image/color"
 	"image/png"
 	"log"
@@ -100,6 +101,13 @@ func loadAssets() {
 		"Goo Alley":         {gooAlley, gooAlleyComplete, levelBG},
 		"Yikesful Mountain": {yikesfulMountain, yikesfulMountainComplete, backgroundYikesfulMountain},
 	}
+
+	var charL []*ebiten.Image
+	for i := 0; i < charFrameCt; i++ {
+		charSprite = append(charSprite, spriteSheet.SubImage(image.Rect(i*playerCharWidth, 0, (i+1)*playerCharWidth, playerCharHeight)).(*ebiten.Image))
+		charL = append(charL, spriteSheet.SubImage(image.Rect(i*playerCharWidth, playerCharHeight, (i+1)*playerCharWidth, 2*playerCharHeight)).(*ebiten.Image))
+	}
+	charSprite = append(charSprite, charL...)
 }
 
 func findSaveFiles() []string {

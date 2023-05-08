@@ -277,6 +277,7 @@ func (w *World) Update(g *Game) error {
 			playerChar.resetView()
 			playerChar.setLocation(l.PlayerX, l.PlayerY)
 			playerChar.hpCurrent = playerChar.hpTotal
+			playerChar.status = "ground"
 			levelSetup(l, playerChar.view.xCoord, playerChar.view.yCoord)
 			playLevel := NewPlay(l)
 			g.state["Play"] = playLevel
@@ -504,8 +505,9 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 	default:
 		mOp := &ebiten.DrawImageOptions{}
 		mOp.GeoM.Translate(float64(playerChar.xCoord), float64(playerChar.yCoord))
-		cx, cy := currentFrame*playerCharWidth, playerChar.facing
-		screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
+		//cx, cy := currentFrame*playerCharWidth, playerChar.facing
+		//screen.DrawImage(playerChar.sprite.SubImage(image.Rect(cx, cy, cx+playerCharWidth, cy+playerCharHeight)).(*ebiten.Image), mOp)
+		screen.DrawImage(playerChar.sprites[currentFrame+(frameCount*playerChar.facing)], mOp)
 	}
 
 	for _, e := range enviroList {
