@@ -322,21 +322,6 @@ func NewPlay(l *LevelData) *Play {
 	return play
 }
 
-// Message returns the level transition message for the transition passed as parameter
-/*
-func (p *Play) Message(t string) string {
-	switch {
-	case t == "entry":
-		return p.level.Message[0]
-	case t == "death":
-		return p.level.Message[1]
-	case t == "exit":
-		return p.level.Message[2]
-	}
-	return p.level.message[0]
-}
-*/
-
 // Update is the main gameplay function. Changes score, player health/lives based on user input and collisions
 func (p *Play) Update(g *Game) error {
 	// sprite frames for different things -- handle differently later
@@ -465,7 +450,7 @@ func (p *Play) Update(g *Game) error {
 		hazardBox := image.Rect(h.xCoord, h.yCoord, h.xCoord+50, h.yCoord+50)
 		if playerBox.Overlaps(hazardBox) {
 			playerChar.death()
-			pauseDeath := NewPause("", "World", p.level.Message[2])
+			pauseDeath := NewPause("", "World", p.level.Message[1])
 			g.state["Pause"] = pauseDeath
 			g.mode = "Pause"
 			g.timer = 30
@@ -476,7 +461,7 @@ func (p *Play) Update(g *Game) error {
 		creatureBox := image.Rect(c.xCoord, c.yCoord, c.xCoord+50, c.yCoord+50)
 		if playerBox.Overlaps(creatureBox) {
 			playerChar.death()
-			pauseDeath := NewPause("", "World", p.level.Message[2])
+			pauseDeath := NewPause("", "World", p.level.Message[1])
 			g.state["Pause"] = pauseDeath
 			g.mode = "Pause"
 			g.timer = 30
@@ -492,7 +477,10 @@ func (p *Play) Update(g *Game) error {
 		log.Print("Just hit the portal")
 		//levelComplete()
 		log.Printf("Level complete")
-		g.mode = "World"
+
+		pauseExit := NewPause("message", "World", p.level.Message[2])
+		g.state["Pause"] = pauseExit
+		g.mode = "Pause"
 	}
 	/*
 		if ebiten.IsKeyPressed(ebiten.KeyQ) {
