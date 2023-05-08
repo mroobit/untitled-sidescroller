@@ -270,7 +270,7 @@ func (w *World) Update(g *Game) error {
 	// locations of levels on World, checking whether conditions are met to enter the level
 	for _, l := range w.levels {
 		if worldPlayerBox.Overlaps(image.Rect(l.WorldX+worldPlayer.view.xCoord, l.WorldY+worldPlayer.view.yCoord, l.WorldX+worldPlayer.view.xCoord+150, l.WorldY+worldPlayer.view.yCoord+150)) &&
-			ebiten.IsKeyPressed(ebiten.KeyEnter) &&
+			inpututil.IsKeyJustPressed(ebiten.KeyEnter) &&
 			l.Complete == false {
 
 			levelWidth, levelHeight = l.background.Size()
@@ -321,6 +321,21 @@ func NewPlay(l *LevelData) *Play {
 	}
 	return play
 }
+
+// Message returns the level transition message for the transition passed as parameter
+/*
+func (p *Play) Message(t string) string {
+	switch {
+	case t == "entry":
+		return p.level.Message[0]
+	case t == "death":
+		return p.level.Message[1]
+	case t == "exit":
+		return p.level.Message[2]
+	}
+	return p.level.message[0]
+}
+*/
 
 // Update is the main gameplay function. Changes score, player health/lives based on user input and collisions
 func (p *Play) Update(g *Game) error {
@@ -450,6 +465,8 @@ func (p *Play) Update(g *Game) error {
 		hazardBox := image.Rect(h.xCoord, h.yCoord, h.xCoord+50, h.yCoord+50)
 		if playerBox.Overlaps(hazardBox) {
 			playerChar.death()
+			pauseDeath := NewPause("", "World", p.level.Message[2])
+			g.state["Pause"] = pauseDeath
 			g.mode = "Pause"
 			g.timer = 30
 		}
@@ -459,6 +476,8 @@ func (p *Play) Update(g *Game) error {
 		creatureBox := image.Rect(c.xCoord, c.yCoord, c.xCoord+50, c.yCoord+50)
 		if playerBox.Overlaps(creatureBox) {
 			playerChar.death()
+			pauseDeath := NewPause("", "World", p.level.Message[2])
+			g.state["Pause"] = pauseDeath
 			g.mode = "Pause"
 			g.timer = 30
 		}
@@ -626,7 +645,7 @@ func (p *Pause) Update(g *Game) error {
 	case p.mode == "message":
 		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 			p.mode = ""
-			g.mode = p.next // "Play" // this only works on level-entry messages...
+			g.mode = p.next
 		}
 	case playerChar.status == "totally dead":
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
@@ -640,7 +659,8 @@ func (p *Pause) Update(g *Game) error {
 		}
 		if playerChar.lives > 0 {
 			clearLevel()
-			g.mode = "World"
+			p.mode = "message"
+			//	g.mode = "World"
 		}
 	case playerChar.status == "dying" && g.timer > 0:
 		g.timer--
