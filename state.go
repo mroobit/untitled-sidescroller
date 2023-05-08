@@ -281,7 +281,7 @@ func (w *World) Update(g *Game) error {
 			levelSetup(l, playerChar.view.xCoord, playerChar.view.yCoord)
 			playLevel := NewPlay(l)
 			g.state["Play"] = playLevel
-			pauseEntry := NewPause("message", l.Message[0])
+			pauseEntry := NewPause("message", "Play", l.Message[0])
 			g.state["Pause"] = pauseEntry
 			g.mode = "Pause"
 		}
@@ -578,14 +578,16 @@ func (p *Play) Draw(screen *ebiten.Image, g *Game) {
 // Pause is a Game State that halts other game logic
 type Pause struct {
 	mode    string
+	next    string // next Game state, after message state
 	message string
 	options *Menu
 }
 
 // NewPause creates new Pause struct
-func NewPause(mod, msg string) *Pause {
+func NewPause(mod, next, msg string) *Pause {
 	p := &Pause{
 		mode:    mod,
+		next:    next,
 		message: msg,
 	}
 	p.FormatMessage()
@@ -624,7 +626,7 @@ func (p *Pause) Update(g *Game) error {
 	case p.mode == "message":
 		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 			p.mode = ""
-			g.mode = "Play"
+			g.mode = p.next // "Play" // this only works on level-entry messages...
 		}
 	case playerChar.status == "totally dead":
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
