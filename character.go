@@ -43,6 +43,7 @@ type Character struct {
 	facing    int
 	xCoord    int
 	yCoord    int
+	xSpeed    int
 	yVelo     int
 	active    bool
 	status    string
@@ -56,6 +57,7 @@ type WorldChar struct { // add to Character struct
 	sprite    *ebiten.Image
 	view      *Viewer
 	direction string
+	speed     int
 	xCoord    int
 	yCoord    int
 }
@@ -112,6 +114,7 @@ func NewWorldChar(sprite *ebiten.Image, view *Viewer) *WorldChar {
 		sprite:    sprite,
 		view:      view,
 		direction: "right",
+		speed:     5,
 		xCoord:    200,
 		yCoord:    300,
 	}
@@ -122,36 +125,36 @@ func NewWorldChar(sprite *ebiten.Image, view *Viewer) *WorldChar {
 
 func (c *Character) moveRight() {
 	// only impact c
-	playerChar.facing = 0
+	c.facing = 0
 	switch {
-	case playerChar.view.xCoord == 0 && playerChar.xCoord < 290: // no offset + player up to just under half-way point of winWidth
-		playerChar.xCoord += playerChar.xSpeed
-	case playerChar.view.xCoord == -200 && playerChar.xCoord < 530: // full offset + player up to 70 less than winWidth, but 32 off from it because playerWidth = 48
-		playerChar.xCoord += playerChar.xSpeed
-	case playerChar.view.xCoord > -200: // winSize - levelBGSize
-		playerChar.view.xCoord -= playerChar.xSpeed
+	case c.view.xCoord == 0 && c.xCoord < 290: // no offset + player up to just under half-way point of winWidth
+		c.xCoord += c.xSpeed
+	case c.view.xCoord == -200 && c.xCoord < 530: // full offset + player up to 70 less than winWidth, but 32 off from it because playerWidth = 48
+		c.xCoord += c.xSpeed
+	case c.view.xCoord > -200: // winSize - levelBGSize
+		c.view.xCoord -= c.xSpeed
 	}
-	playerCharSide := (playerChar.xCoord - playerChar.view.xCoord + playerCharWidth + 1) / 50
-	playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+	playerCharSide := (c.xCoord - c.view.xCoord + playerCharWidth + 1) / 50
+	playerCharTop := (c.yCoord - c.view.yCoord) / 50
 	if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 /* || levelMap[0][playerCharBase*tileXCount+playerCharSide] == 1*/ {
-		playerChar.xCoord -= playerChar.xSpeed
+		c.xCoord -= c.xSpeed
 	}
 }
 
 func (c *Character) moveLeft() {
-	playerChar.facing = 1
+	c.facing = 1
 	switch {
-	case playerChar.view.xCoord == -200 && playerChar.xCoord > 290:
-		playerChar.xCoord -= playerChar.xSpeed
-	case playerChar.view.xCoord == 0 && playerChar.xCoord > 40:
-		playerChar.xCoord -= playerChar.xSpeed
-	case playerChar.view.xCoord < 0:
-		playerChar.view.xCoord += playerChar.xSpeed
+	case c.view.xCoord == -200 && c.xCoord > 290:
+		c.xCoord -= c.xSpeed
+	case c.view.xCoord == 0 && c.xCoord > 40:
+		c.xCoord -= c.xSpeed
+	case c.view.xCoord < 0:
+		c.view.xCoord += c.xSpeed
 	}
-	playerCharSide := (playerChar.xCoord - playerChar.view.xCoord) / 50
-	playerCharTop := (playerChar.yCoord - playerChar.view.yCoord) / 50
+	playerCharSide := (c.xCoord - c.view.xCoord) / 50
+	playerCharTop := (c.yCoord - c.view.yCoord) / 50
 	if levelMap[0][playerCharTop*tileXCount+playerCharSide] == 1 {
-		playerChar.xCoord += playerChar.xSpeed
+		c.xCoord += c.xSpeed
 	}
 }
 
@@ -175,47 +178,47 @@ func (c *Character) death() {
 }
 
 func (w *WorldChar) navRight(radiusCheck float64) {
-	worldPlayer.direction = "right"
+	w.direction = "right"
 	switch {
-	case worldPlayer.view.xCoord == 0 && worldPlayer.xCoord < 290:
-		worldPlayer.xCoord += 5
-	case worldPlayer.view.xCoord == -400 && radiusCheck+50 < radius: // worldPlayer.xCoord < 500: // but actually, the arc of the circle
-		worldPlayer.xCoord += 5
-	case worldPlayer.view.xCoord > -400:
-		worldPlayer.view.xCoord -= 5
+	case w.view.xCoord == 0 && w.xCoord < 290:
+		w.xCoord += w.speed
+	case w.view.xCoord == -400 && radiusCheck+50 < radius: // w.xCoord < 500: // but actually, the arc of the circle
+		w.xCoord += w.speed
+	case w.view.xCoord > -400:
+		w.view.xCoord -= w.speed
 	}
 
 }
 func (w *WorldChar) navLeft(radiusCheck float64) {
-	worldPlayer.direction = "left"
+	w.direction = "left"
 	switch {
-	case worldPlayer.view.xCoord == -400 && worldPlayer.xCoord > 290:
-		worldPlayer.xCoord -= 5
-	case worldPlayer.view.xCoord == 0 && radiusCheck < radius: // worldPlayer.xCoord < 500: // but actually, the arc of the circle
-		worldPlayer.xCoord -= 5
-	case worldPlayer.view.xCoord < 0:
-		worldPlayer.view.xCoord += 5
+	case w.view.xCoord == -400 && w.xCoord > 290:
+		w.xCoord -= w.speed
+	case w.view.xCoord == 0 && radiusCheck < radius: // w.xCoord < 500: // but actually, the arc of the circle
+		w.xCoord -= w.speed
+	case w.view.xCoord < 0:
+		w.view.xCoord += w.speed
 	}
 }
 func (w *WorldChar) navUp(radiusCheck float64) {
-	worldPlayer.direction = "up"
+	w.direction = "up"
 	switch {
-	case worldPlayer.view.yCoord == -520 && worldPlayer.yCoord > 230:
-		worldPlayer.yCoord -= 5
-	case worldPlayer.view.yCoord == 0 && radiusCheck < radius:
-		worldPlayer.yCoord -= 5
-	case worldPlayer.view.yCoord < 0:
-		worldPlayer.view.yCoord += 5
+	case w.view.yCoord == -520 && w.yCoord > 230:
+		w.yCoord -= w.speed
+	case w.view.yCoord == 0 && radiusCheck < radius:
+		w.yCoord -= w.speed
+	case w.view.yCoord < 0:
+		w.view.yCoord += w.speed
 	}
 }
 func (w *WorldChar) navDown(radiusCheck float64) {
-	worldPlayer.direction = "down"
+	w.direction = "down"
 	switch {
-	case worldPlayer.view.yCoord == 0 && worldPlayer.yCoord < 250:
-		worldPlayer.yCoord += 5
-	case worldPlayer.view.yCoord == -520 && radiusCheck+50 < radius:
-		worldPlayer.yCoord += 5
-	case worldPlayer.view.yCoord > -520:
-		worldPlayer.view.yCoord -= 5
+	case w.view.yCoord == 0 && w.yCoord < 250:
+		w.yCoord += w.speed
+	case w.view.yCoord == -520 && radiusCheck+50 < radius:
+		w.yCoord += w.speed
+	case w.view.yCoord > -520:
+		w.view.yCoord -= w.speed
 	}
 }
