@@ -1,4 +1,13 @@
 # Untitled Side-Scrolling Game
+<p>
+  <a href="https://golang.org/doc/go1.20">
+    <img alt="Go" src="https://img.shields.io/github/go-mod/go-version/mroobit/untitled-sidescroller?color=00ADD8&style=flat"
+  </a> 
+  <a href="https://opensource.org/licenses/MIT">
+    <img alt="License" src="https://img.shields.io/github/license/mroobit/untitled-sidescroller?color=440000&style=flat"
+  </a>
+</p>
+
 
 ![untitled-sidescroller-early-demo--03-06](https://user-images.githubusercontent.com/69212809/223170546-fca04225-034e-4587-96b5-c31302b2422c.gif)
 
